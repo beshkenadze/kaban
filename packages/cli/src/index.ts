@@ -5,6 +5,7 @@ import { addCommand } from "./commands/add.js";
 import { listCommand } from "./commands/list.js";
 import { moveCommand } from "./commands/move.js";
 import { doneCommand } from "./commands/done.js";
+import { statusCommand } from "./commands/status.js";
 
 const program = new Command();
 
@@ -18,5 +19,6 @@ program.addCommand(addCommand);
 program.addCommand(listCommand);
 program.addCommand(moveCommand);
 program.addCommand(doneCommand);
+program.addCommand(statusCommand);
 
 program.parse();
