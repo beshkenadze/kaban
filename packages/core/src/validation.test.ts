@@ -1,11 +1,6 @@
-import { describe, test, expect } from "bun:test";
-import {
-  validateTitle,
-  validateAgentName,
-  validateColumnId,
-  isValidUlid,
-} from "./validation.js";
-import { KabanError, ExitCode } from "./types.js";
+import { describe, expect, test } from "bun:test";
+import { KabanError } from "./types.js";
+import { isValidUlid, validateAgentName, validateColumnId, validateTitle } from "./validation.js";
 
 describe("validateTitle", () => {
   test("accepts valid title", () => {

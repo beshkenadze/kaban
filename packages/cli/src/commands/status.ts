@@ -1,6 +1,6 @@
+import { KabanError } from "@kaban/core";
 import { Command } from "commander";
 import { getContext } from "../lib/context.js";
-import { KabanError } from "@kaban/core";
 
 export const statusCommand = new Command("status")
   .description("Show board status summary")

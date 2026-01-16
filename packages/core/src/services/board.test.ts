@@ -1,8 +1,8 @@
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { BoardService } from "./board.js";
-import { createDb, initializeSchema, type DB } from "../db/index.js";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { existsSync, rmSync } from "node:fs";
+import { createDb, type DB, initializeSchema } from "../db/index.js";
 import { DEFAULT_CONFIG } from "../types.js";
-import { unlinkSync, existsSync, rmSync } from "node:fs";
+import { BoardService } from "./board.js";
 
 const TEST_DIR = ".kaban-test-board";
 const TEST_DB = `${TEST_DIR}/board.db`;

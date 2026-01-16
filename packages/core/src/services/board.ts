@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { ulid } from "ulid";
-import { type DB, boards, columns } from "../db/index.js";
+import { boards, columns, type DB } from "../db/index.js";
 import type { Board, Column, Config } from "../types.js";
 
 export class BoardService {
@@ -10,23 +10,29 @@ export class BoardService {
     const now = new Date();
     const boardId = ulid();
 
-    this.db.insert(boards).values({
-      id: boardId,
-      name: config.board.name,
-      createdAt: now,
-      updatedAt: now,
-    }).run();
+    this.db
+      .insert(boards)
+      .values({
+        id: boardId,
+        name: config.board.name,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
 
     for (let i = 0; i < config.columns.length; i++) {
       const col = config.columns[i];
-      this.db.insert(columns).values({
-        id: col.id,
-        boardId,
-        name: col.name,
-        position: i,
-        wipLimit: col.wipLimit ?? null,
-        isTerminal: col.isTerminal ?? false,
-      }).run();
+      this.db
+        .insert(columns)
+        .values({
+          id: col.id,
+          boardId,
+          name: col.name,
+          position: i,
+          wipLimit: col.wipLimit ?? null,
+          isTerminal: col.isTerminal ?? false,
+        })
+        .run();
     }
 
     return {
@@ -43,37 +49,21 @@ export class BoardService {
   }
 
   getColumns(): Column[] {
-    return this.db
-      .select()
-      .from(columns)
-      .orderBy(columns.position)
-      .all();
+    return this.db.select().from(columns).orderBy(columns.position).all();
   }
 
   getColumn(id: string): Column | null {
-    const row = this.db
-      .select()
-      .from(columns)
-      .where(eq(columns.id, id))
-      .get();
+    const row = this.db.select().from(columns).where(eq(columns.id, id)).get();
     return row ?? null;
   }
 
   getTerminalColumn(): Column | null {
-    const row = this.db
-      .select()
-      .from(columns)
-      .where(eq(columns.isTerminal, true))
-      .get();
+    const row = this.db.select().from(columns).where(eq(columns.isTerminal, true)).get();
     return row ?? null;
   }
 
   getTaskCountInColumn(columnId: string): number {
-    const result = this.db
-      .select()
-      .from(columns)
-      .where(eq(columns.id, columnId))
-      .get();
+    const result = this.db.select().from(columns).where(eq(columns.id, columnId)).get();
     return result ? 0 : 0;
   }
 }

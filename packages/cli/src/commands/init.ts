@@ -1,13 +1,7 @@
-import { Command } from "commander";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { existsSync, writeFileSync, mkdirSync } from "node:fs";
-import {
-  createDb,
-  initializeSchema,
-  BoardService,
-  DEFAULT_CONFIG,
-  type Config,
-} from "@kaban/core";
+import { BoardService, type Config, createDb, DEFAULT_CONFIG, initializeSchema } from "@kaban/core";
+import { Command } from "commander";
 
 export const initCommand = new Command("init")
   .description("Initialize a new Kaban board in the current directory")

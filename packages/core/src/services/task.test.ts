@@ -1,9 +1,9 @@
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { TaskService } from "./task.js";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { existsSync, rmSync } from "node:fs";
+import { createDb, type DB, initializeSchema } from "../db/index.js";
+import { DEFAULT_CONFIG, KabanError } from "../types.js";
 import { BoardService } from "./board.js";
-import { createDb, initializeSchema, type DB } from "../db/index.js";
-import { DEFAULT_CONFIG, KabanError, ExitCode } from "../types.js";
-import { unlinkSync, existsSync, rmSync } from "node:fs";
+import { TaskService } from "./task.js";
 
 const TEST_DIR = ".kaban-test-task";
 const TEST_DB = `${TEST_DIR}/board.db`;
@@ -49,9 +49,7 @@ describe("TaskService", () => {
     });
 
     test("throws on invalid column", () => {
-      expect(() =>
-        taskService.addTask({ title: "Test", columnId: "invalid" }),
-      ).toThrow(KabanError);
+      expect(() => taskService.addTask({ title: "Test", columnId: "invalid" })).toThrow(KabanError);
     });
   });
 
@@ -106,9 +104,7 @@ describe("TaskService", () => {
     });
 
     test("throws on nonexistent task", () => {
-      expect(() =>
-        taskService.deleteTask("01ARZ3NDEKTSV4RRFFQ69G5FAV"),
-      ).toThrow(KabanError);
+      expect(() => taskService.deleteTask("01ARZ3NDEKTSV4RRFFQ69G5FAV")).toThrow(KabanError);
     });
   });
 
@@ -129,9 +125,7 @@ describe("TaskService", () => {
 
       const task = taskService.addTask({ title: "Task 4", columnId: "todo" });
 
-      expect(() => taskService.moveTask(task.id, "in_progress")).toThrow(
-        /WIP limit/,
-      );
+      expect(() => taskService.moveTask(task.id, "in_progress")).toThrow(/WIP limit/);
     });
 
     test("allows move with --force when WIP limit exceeded", () => {
@@ -159,18 +153,14 @@ describe("TaskService", () => {
 
       taskService.updateTask(task.id, { title: "Updated by other" });
 
-      expect(() =>
-        taskService.updateTask(task.id, { title: "My update" }, task.version),
-      ).toThrow(/modified by another agent/);
+      expect(() => taskService.updateTask(task.id, { title: "My update" }, task.version)).toThrow(
+        /modified by another agent/,
+      );
     });
 
     test("succeeds with correct version", () => {
       const task = taskService.addTask({ title: "Original" });
-      const updated = taskService.updateTask(
-        task.id,
-        { title: "Updated" },
-        task.version,
-      );
+      const updated = taskService.updateTask(task.id, { title: "Updated" }, task.version);
 
       expect(updated.title).toBe("Updated");
       expect(updated.version).toBe(2);

@@ -1,9 +1,9 @@
-import { eq, and, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { ulid } from "ulid";
 import { type DB, tasks } from "../db/index.js";
 import type { Task } from "../types.js";
-import { KabanError, ExitCode } from "../types.js";
-import { validateTitle, validateAgentName, validateColumnId } from "../validation.js";
+import { ExitCode, KabanError } from "../types.js";
+import { validateAgentName, validateColumnId, validateTitle } from "../validation.js";
 import type { BoardService } from "./board.js";
 
 export interface AddTaskInput {
@@ -40,19 +40,22 @@ export class TaskService {
     private boardService: BoardService,
   ) {}
 
+  private getTaskOrThrow(id: string): Task {
+    const task = this.getTask(id);
+    if (!task) {
+      throw new KabanError(`Task '${id}' not found`, ExitCode.NOT_FOUND);
+    }
+    return task;
+  }
+
   addTask(input: AddTaskInput): Task {
     const title = validateTitle(input.title);
     const agent = input.agent ? validateAgentName(input.agent) : "user";
-    const columnId = input.columnId
-      ? validateColumnId(input.columnId)
-      : "todo";
+    const columnId = input.columnId ? validateColumnId(input.columnId) : "todo";
 
     const column = this.boardService.getColumn(columnId);
     if (!column) {
-      throw new KabanError(
-        `Column '${columnId}' does not exist`,
-        ExitCode.VALIDATION,
-      );
+      throw new KabanError(`Column '${columnId}' does not exist`, ExitCode.VALIDATION);
     }
 
     const now = new Date();
@@ -66,27 +69,30 @@ export class TaskService {
 
     const position = (maxPosition?.max ?? -1) + 1;
 
-    this.db.insert(tasks).values({
-      id,
-      title,
-      description: input.description ?? null,
-      columnId,
-      position,
-      createdBy: agent,
-      assignedTo: null,
-      parentId: null,
-      dependsOn: input.dependsOn ?? [],
-      files: input.files ?? [],
-      labels: input.labels ?? [],
-      blockedReason: null,
-      version: 1,
-      createdAt: now,
-      updatedAt: now,
-      startedAt: null,
-      completedAt: null,
-    }).run();
+    this.db
+      .insert(tasks)
+      .values({
+        id,
+        title,
+        description: input.description ?? null,
+        columnId,
+        position,
+        createdBy: agent,
+        assignedTo: null,
+        parentId: null,
+        dependsOn: input.dependsOn ?? [],
+        files: input.files ?? [],
+        labels: input.labels ?? [],
+        blockedReason: null,
+        version: 1,
+        createdAt: now,
+        updatedAt: now,
+        startedAt: null,
+        completedAt: null,
+      })
+      .run();
 
-    return this.getTask(id)!;
+    return this.getTaskOrThrow(id);
   }
 
   getTask(id: string): Task | null {
@@ -133,10 +139,7 @@ export class TaskService {
     validateColumnId(columnId);
     const column = this.boardService.getColumn(columnId);
     if (!column) {
-      throw new KabanError(
-        `Column '${columnId}' does not exist`,
-        ExitCode.VALIDATION,
-      );
+      throw new KabanError(`Column '${columnId}' does not exist`, ExitCode.VALIDATION);
     }
 
     if (column.wipLimit && !options?.force) {
@@ -173,7 +176,7 @@ export class TaskService {
       .where(eq(tasks.id, id))
       .run();
 
-    return this.getTask(id)!;
+    return this.getTaskOrThrow(id);
   }
 
   updateTask(id: string, input: UpdateTaskInput, expectedVersion?: number): Task {
@@ -201,9 +204,7 @@ export class TaskService {
       updates.description = input.description;
     }
     if (input.assignedTo !== undefined) {
-      updates.assignedTo = input.assignedTo
-        ? validateAgentName(input.assignedTo)
-        : null;
+      updates.assignedTo = input.assignedTo ? validateAgentName(input.assignedTo) : null;
     }
     if (input.files !== undefined) {
       updates.files = input.files;
@@ -222,7 +223,7 @@ export class TaskService {
       )
       .run();
 
-    return this.getTask(id)!;
+    return this.getTaskOrThrow(id);
   }
 
   private getTaskCountInColumn(columnId: string): number {

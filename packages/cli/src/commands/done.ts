@@ -1,6 +1,6 @@
+import { KabanError } from "@kaban/core";
 import { Command } from "commander";
 import { getContext } from "../lib/context.js";
-import { KabanError } from "@kaban/core";
 
 export const doneCommand = new Command("done")
   .description("Mark a task as done")

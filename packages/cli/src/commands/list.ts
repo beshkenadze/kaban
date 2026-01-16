@@ -1,6 +1,6 @@
+import { KabanError } from "@kaban/core";
 import { Command } from "commander";
 import { getContext } from "../lib/context.js";
-import { KabanError } from "@kaban/core";
 
 export const listCommand = new Command("list")
   .description("List tasks")
@@ -36,9 +36,7 @@ export const listCommand = new Command("list")
         const blocked = task.blockedReason ? " [blocked]" : "";
         const agent = task.createdBy !== "user" ? ` @${task.createdBy}` : "";
 
-        console.log(
-          `[${task.id.slice(0, 8)}] ${task.title}${agent}${blocked}`,
-        );
+        console.log(`[${task.id.slice(0, 8)}] ${task.title}${agent}${blocked}`);
         console.log(`         ${column?.name ?? task.columnId}`);
       }
     } catch (error) {

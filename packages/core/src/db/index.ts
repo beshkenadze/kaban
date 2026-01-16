@@ -1,8 +1,8 @@
-import { drizzle } from "drizzle-orm/bun-sqlite";
 import { Database } from "bun:sqlite";
-import * as schema from "./schema.js";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import { drizzle } from "drizzle-orm/bun-sqlite";
+import * as schema from "./schema.js";
 
 export * from "./schema.js";
 

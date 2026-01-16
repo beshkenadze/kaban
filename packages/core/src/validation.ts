@@ -1,4 +1,4 @@
-import { KabanError, ExitCode } from "./types.js";
+import { ExitCode, KabanError } from "./types.js";
 
 const TITLE_MAX = 200;
 const AGENT_REGEX = /^[a-zA-Z][a-zA-Z0-9_-]{0,49}$/;

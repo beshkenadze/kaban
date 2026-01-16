@@ -1,6 +1,6 @@
-import { Command } from "commander";
-import { getContext, getAgent } from "../lib/context.js";
 import { KabanError } from "@kaban/core";
+import { Command } from "commander";
+import { getAgent, getContext } from "../lib/context.js";
 
 export const addCommand = new Command("add")
   .description("Add a new task")

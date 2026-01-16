@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { execSync } from "node:child_process";
-import { existsSync, rmSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
 const TEST_DIR = "/tmp/kaban-cli-test";
@@ -51,16 +51,12 @@ describe("CLI Integration", () => {
     run(`move ${taskId} in_progress`);
 
     const afterMove = run("list --json");
-    const movedTask = JSON.parse(afterMove).find((t: { id: string }) =>
-      t.id.startsWith(taskId),
-    );
+    const movedTask = JSON.parse(afterMove).find((t: { id: string }) => t.id.startsWith(taskId));
     expect(movedTask.columnId).toBe("in_progress");
 
     run(`done ${taskId}`);
     const afterDone = run("list --json");
-    const doneTask = JSON.parse(afterDone).find((t: { id: string }) =>
-      t.id.startsWith(taskId),
-    );
+    const doneTask = JSON.parse(afterDone).find((t: { id: string }) => t.id.startsWith(taskId));
     expect(doneTask.columnId).toBe("done");
     expect(doneTask.completedAt).not.toBeNull();
   });
