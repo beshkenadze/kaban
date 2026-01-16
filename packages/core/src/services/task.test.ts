@@ -111,4 +111,45 @@ describe("TaskService", () => {
       ).toThrow(KabanError);
     });
   });
+
+  describe("moveTask", () => {
+    test("moves task to new column", () => {
+      const task = taskService.addTask({ title: "Movable", columnId: "todo" });
+      const moved = taskService.moveTask(task.id, "in_progress");
+
+      expect(moved.columnId).toBe("in_progress");
+      expect(moved.version).toBe(2);
+    });
+
+    test("rejects move when WIP limit exceeded", () => {
+      // in_progress has wipLimit: 3
+      taskService.addTask({ title: "Task 1", columnId: "in_progress" });
+      taskService.addTask({ title: "Task 2", columnId: "in_progress" });
+      taskService.addTask({ title: "Task 3", columnId: "in_progress" });
+
+      const task = taskService.addTask({ title: "Task 4", columnId: "todo" });
+
+      expect(() => taskService.moveTask(task.id, "in_progress")).toThrow(
+        /WIP limit/,
+      );
+    });
+
+    test("allows move with --force when WIP limit exceeded", () => {
+      taskService.addTask({ title: "Task 1", columnId: "in_progress" });
+      taskService.addTask({ title: "Task 2", columnId: "in_progress" });
+      taskService.addTask({ title: "Task 3", columnId: "in_progress" });
+
+      const task = taskService.addTask({ title: "Task 4", columnId: "todo" });
+      const moved = taskService.moveTask(task.id, "in_progress", { force: true });
+
+      expect(moved.columnId).toBe("in_progress");
+    });
+
+    test("sets completedAt when moving to terminal column", () => {
+      const task = taskService.addTask({ title: "To complete" });
+      const moved = taskService.moveTask(task.id, "done");
+
+      expect(moved.completedAt).not.toBeNull();
+    });
+  });
 });
