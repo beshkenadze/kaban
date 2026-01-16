@@ -1,6 +1,14 @@
 #!/usr/bin/env bun
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import {
+  BoardService,
+  type Config,
+  createDb,
+  DEFAULT_CONFIG,
+  initializeSchema,
+  TaskService,
+} from "@kaban/core";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -9,12 +17,6 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import {
-  BoardService,
-  type Config,
-  createDb,
-  TaskService,
-} from "@kaban/core";
 
 function getKabanPaths(basePath?: string) {
   const base = basePath ?? process.cwd();
@@ -51,6 +53,17 @@ const server = new Server(
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
+      name: "kaban_init",
+      description: "Initialize a new Kaban board in the specified or current directory",
+      inputSchema: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Board name (default: 'Kaban Board')" },
+          path: { type: "string", description: "Directory path (default: KABAN_PATH or cwd)" },
+        },
+      },
+    },
+    {
       name: "kaban_add_task",
       description: "Add a new task to the Kaban board",
       inputSchema: {
@@ -60,7 +73,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           description: { type: "string", description: "Task description" },
           columnId: { type: "string", description: "Column ID (default: todo)" },
           agent: { type: "string", description: "Agent name creating the task" },
-          dependsOn: { type: "array", items: { type: "string" }, description: "Task IDs this depends on" },
+          dependsOn: {
+            type: "array",
+            items: { type: "string" },
+            description: "Task IDs this depends on",
+          },
           files: { type: "array", items: { type: "string" }, description: "Associated file paths" },
           labels: { type: "array", items: { type: "string" }, description: "Task labels" },
         },
@@ -115,7 +132,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           assignedTo: { type: ["string", "null"], description: "Assigned agent name" },
           files: { type: "array", items: { type: "string" }, description: "Associated file paths" },
           labels: { type: "array", items: { type: "string" }, description: "Task labels" },
-          expectedVersion: { type: "number", description: "Expected version for optimistic locking" },
+          expectedVersion: {
+            type: "number",
+            description: "Expected version for optimistic locking",
+          },
         },
         required: ["id"],
       },
@@ -154,6 +174,58 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
   try {
+    // Handle init separately as it creates a new context
+    if (name === "kaban_init") {
+      const { name: boardName = "Kaban Board", path: basePath } = (args ?? {}) as {
+        name?: string;
+        path?: string;
+      };
+      const targetPath = basePath ?? workingDirectory;
+      const { kabanDir, dbPath, configPath } = getKabanPaths(targetPath);
+
+      if (existsSync(dbPath)) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({ error: "Board already exists in this directory" }),
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      mkdirSync(kabanDir, { recursive: true });
+
+      const config: Config = {
+        ...DEFAULT_CONFIG,
+        board: { name: boardName },
+      };
+      writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+      const db = createDb(dbPath);
+      await initializeSchema(db);
+      const boardService = new BoardService(db);
+      await boardService.initializeBoard(config);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                success: true,
+                board: boardName,
+                paths: { database: dbPath, config: configPath },
+              },
+              null,
+              2,
+            ),
+          },
+        ],
+      };
+    }
+
     const { taskService, boardService } = createContext(workingDirectory);
 
     switch (name) {
@@ -171,7 +243,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "kaban_list_tasks": {
-        const tasks = await taskService.listTasks(args as Parameters<typeof taskService.listTasks>[0]);
+        const tasks = await taskService.listTasks(
+          args as Parameters<typeof taskService.listTasks>[0],
+        );
         return { content: [{ type: "text", text: JSON.stringify(tasks, null, 2) }] };
       }
 
@@ -205,11 +279,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const tasks = await taskService.listTasks();
         const task = tasks.find((t) => t.id.startsWith(id));
         if (!task) {
-          return { content: [{ type: "text", text: JSON.stringify({ error: `Task '${id}' not found` }) }] };
+          return {
+            content: [{ type: "text", text: JSON.stringify({ error: `Task '${id}' not found` }) }],
+          };
         }
         const terminal = await boardService.getTerminalColumn();
         if (!terminal) {
-          return { content: [{ type: "text", text: JSON.stringify({ error: "No terminal column configured" }) }] };
+          return {
+            content: [
+              { type: "text", text: JSON.stringify({ error: "No terminal column configured" }) },
+            ],
+          };
         }
         const completed = await taskService.moveTask(task.id, terminal.id);
         return { content: [{ type: "text", text: JSON.stringify(completed, null, 2) }] };
@@ -246,7 +326,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       default:
-        return { content: [{ type: "text", text: JSON.stringify({ error: `Unknown tool: ${name}` }) }], isError: true };
+        return {
+          content: [{ type: "text", text: JSON.stringify({ error: `Unknown tool: ${name}` }) }],
+          isError: true,
+        };
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -289,7 +372,12 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
         isTerminal: column.isTerminal,
         tasks: tasks
           .filter((t) => t.columnId === column.id)
-          .map((t) => ({ id: t.id, title: t.title, createdBy: t.createdBy, blocked: !!t.blockedReason })),
+          .map((t) => ({
+            id: t.id,
+            title: t.title,
+            createdBy: t.createdBy,
+            blocked: !!t.blockedReason,
+          })),
       }));
       return {
         contents: [
@@ -330,17 +418,35 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
       const id = uri.replace("kaban://task/", "");
       const task = await taskService.getTask(id);
       if (!task) {
-        return { contents: [{ uri, mimeType: "application/json", text: JSON.stringify({ error: "Task not found" }) }] };
+        return {
+          contents: [
+            {
+              uri,
+              mimeType: "application/json",
+              text: JSON.stringify({ error: "Task not found" }),
+            },
+          ],
+        };
       }
       return {
         contents: [{ uri, mimeType: "application/json", text: JSON.stringify(task, null, 2) }],
       };
     }
 
-    return { contents: [{ uri, mimeType: "application/json", text: JSON.stringify({ error: "Resource not found" }) }] };
+    return {
+      contents: [
+        {
+          uri,
+          mimeType: "application/json",
+          text: JSON.stringify({ error: "Resource not found" }),
+        },
+      ],
+    };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return { contents: [{ uri, mimeType: "application/json", text: JSON.stringify({ error: message }) }] };
+    return {
+      contents: [{ uri, mimeType: "application/json", text: JSON.stringify({ error: message }) }],
+    };
   }
 });
 
