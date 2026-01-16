@@ -7,7 +7,9 @@ const SHORTCUTS = [
   ["<-/-> h/l", "Switch column"],
   ["up/dn j/k", "Navigate tasks"],
   ["a", "Add new task"],
-  ["Enter", "Select task"],
+  ["m", "Move task (change status)"],
+  ["u", "Assign user to task"],
+  ["d", "Delete task"],
   ["?", "Show/hide help"],
   ["q", "Quit"],
 ] as const;
@@ -18,19 +20,25 @@ export function showHelpModal(state: AppState): void {
   const { overlay, dialog } = createModalOverlay(renderer, {
     id: "help-dialog",
     width: 45,
-    height: 14,
+    height: 16,
     padding: 2,
   });
 
+  const titleRow = new BoxRenderable(renderer, {
+    id: "help-title-row",
+    width: "100%",
+    height: 1,
+  });
   const title = new TextRenderable(renderer, {
     id: "help-title",
     content: "Keyboard Shortcuts",
     fg: COLORS.accent,
   });
+  titleRow.add(title);
 
   const spacer = new BoxRenderable(renderer, { id: "help-spacer", width: "100%", height: 1 });
 
-  dialog.add(title);
+  dialog.add(titleRow);
   dialog.add(spacer);
 
   for (const [key, desc] of SHORTCUTS) {
@@ -43,7 +51,7 @@ export function showHelpModal(state: AppState): void {
     const keyText = new TextRenderable(renderer, {
       id: `help-key-${key}`,
       content: key.padEnd(12),
-      fg: COLORS.accent,
+      fg: COLORS.accentBright,
     });
     const descText = new TextRenderable(renderer, {
       id: `help-desc-${key}`,
@@ -55,12 +63,24 @@ export function showHelpModal(state: AppState): void {
     dialog.add(row);
   }
 
+  const hintSpacer = new BoxRenderable(renderer, {
+    id: "help-hint-spacer",
+    width: "100%",
+    height: 1,
+  });
+  const hintRow = new BoxRenderable(renderer, {
+    id: "help-hint-row",
+    width: "100%",
+    height: 1,
+  });
   const hint = new TextRenderable(renderer, {
     id: "help-hint",
-    content: "\n[Esc] or any key to close",
+    content: "[Esc] or any key to close",
     fg: COLORS.textDim,
   });
-  dialog.add(hint);
+  hintRow.add(hint);
+  dialog.add(hintSpacer);
+  dialog.add(hintRow);
 
   renderer.root.add(overlay);
 

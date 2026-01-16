@@ -46,11 +46,14 @@ async function main() {
     boardName: board.name,
     columns: [],
     columnPanels: [],
+    taskSelects: new Map(),
     currentColumnIndex: 0,
+    selectedTask: null,
     mainContainer: null,
     activeModal: "none",
     modalOverlay: null,
     taskInput: null,
+    buttonRow: null,
   };
 
   await refreshBoard(state);

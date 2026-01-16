@@ -8,30 +8,42 @@ export function showQuitModal(state: AppState): void {
 
   const { overlay, dialog } = createModalOverlay(renderer, {
     id: "quit-dialog",
-    width: 30,
-    height: 7,
+    width: 32,
+    height: 8,
     borderColor: COLORS.danger,
-    justifyContent: "center",
-    alignItems: "center",
   });
 
+  const titleRow = new BoxRenderable(renderer, {
+    id: "quit-title-row",
+    width: "100%",
+    height: 1,
+    justifyContent: "center",
+  });
   const title = new TextRenderable(renderer, {
     id: "quit-title",
     content: "Quit Kaban?",
     fg: COLORS.danger,
   });
+  titleRow.add(title);
 
-  const spacer = new BoxRenderable(renderer, { id: "quit-spacer", width: "100%", height: 1 });
+  const spacer = new BoxRenderable(renderer, { id: "quit-spacer", width: "100%", height: 2 });
 
+  const hintRow = new BoxRenderable(renderer, {
+    id: "quit-hint-row",
+    width: "100%",
+    height: 1,
+    justifyContent: "center",
+  });
   const hint = new TextRenderable(renderer, {
     id: "quit-hint",
     content: "[y] Yes  [n/Esc] No",
     fg: COLORS.textMuted,
   });
+  hintRow.add(hint);
 
-  dialog.add(title);
+  dialog.add(titleRow);
   dialog.add(spacer);
-  dialog.add(hint);
+  dialog.add(hintRow);
   renderer.root.add(overlay);
 
   state.modalOverlay = overlay;

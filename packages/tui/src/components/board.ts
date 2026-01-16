@@ -1,9 +1,4 @@
-import {
-  BoxRenderable,
-  SelectRenderable,
-  SelectRenderableEvents,
-  TextRenderable,
-} from "@opentui/core";
+import { BoxRenderable, SelectRenderable, TextRenderable } from "@opentui/core";
 import { COLORS } from "../lib/theme.js";
 import type { AppState } from "../lib/types.js";
 import { truncate } from "../lib/utils.js";
@@ -16,6 +11,7 @@ export async function refreshBoard(state: AppState): Promise<void> {
   }
 
   state.columns = await boardService.getColumns();
+  state.taskSelects = new Map();
   const tasks = await taskService.listTasks();
 
   const mainContainer = new BoxRenderable(renderer, {
@@ -70,10 +66,22 @@ export async function refreshBoard(state: AppState): Promise<void> {
       borderStyle: isSelected ? "double" : "single",
       borderColor: isSelected ? COLORS.borderActive : COLORS.border,
       backgroundColor: COLORS.panel,
-      title: `${column.name} (${columnTasks.length})`,
-      titleAlignment: "center",
       padding: 1,
     });
+
+    const columnHeader = new BoxRenderable(renderer, {
+      id: `column-header-${column.id}`,
+      width: "100%",
+      height: 1,
+      justifyContent: "center",
+    });
+    const columnTitle = new TextRenderable(renderer, {
+      id: `column-title-${column.id}`,
+      content: `${column.name} (${columnTasks.length})`,
+      fg: isSelected ? COLORS.accentBright : COLORS.textMuted,
+    });
+    columnHeader.add(columnTitle);
+    columnPanel.add(columnHeader);
 
     if (columnTasks.length > 0) {
       const taskSelect = new SelectRenderable(renderer, {
@@ -84,7 +92,7 @@ export async function refreshBoard(state: AppState): Promise<void> {
         textColor: COLORS.text,
         options: columnTasks.map((task) => ({
           name: truncate(task.title, 30),
-          description: task.createdBy,
+          description: task.assignedTo ?? task.createdBy,
           value: task.id,
         })),
         selectedBackgroundColor: COLORS.bg,
@@ -92,7 +100,7 @@ export async function refreshBoard(state: AppState): Promise<void> {
         descriptionColor: COLORS.textMuted,
       });
 
-      taskSelect.on(SelectRenderableEvents.ITEM_SELECTED, () => {});
+      state.taskSelects.set(column.id, taskSelect);
 
       if (isSelected) {
         taskSelect.focus();
@@ -127,7 +135,7 @@ export async function refreshBoard(state: AppState): Promise<void> {
 
   const footerText = new TextRenderable(renderer, {
     id: "footer-text",
-    content: "<-> Column  up/dn Task  [a]dd  [?] Help  [q]uit",
+    content: "[a]dd [m]ove [u]ser [d]el  [?]Help [q]uit",
     fg: COLORS.textMuted,
   });
   footer.add(footerText);

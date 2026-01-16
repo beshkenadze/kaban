@@ -6,5 +6,6 @@ export function closeModal(state: AppState): void {
     state.modalOverlay = null;
   }
   state.taskInput = null;
+  state.buttonRow = null;
   state.activeModal = "none";
 }
