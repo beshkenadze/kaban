@@ -1,0 +1,91 @@
+version: '3'
+
+vars:
+  INSTALL_DIR: '{{.INSTALL_DIR | default "/usr/local/bin"}}'
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  build:
+    desc: Build all packages
+    cmds:
+      - bun install
+      - bun run build
+
+  build:bin:
+    desc: Build CLI and TUI binaries
+    deps: [build]
+    cmds:
+      - cd packages/cli && bun run build:bin
+      - cd packages/tui && bun run build:bin
+
+  install:
+    desc: Build and install binaries to system
+    deps: [build:bin]
+    cmds:
+      - |
+        if [ -w "{{.INSTALL_DIR}}" ]; then
+          cp packages/cli/dist/kaban "{{.INSTALL_DIR}}/kaban"
+          cp packages/tui/dist/kaban-tui "{{.INSTALL_DIR}}/kaban-tui"
+        else
+          sudo cp packages/cli/dist/kaban "{{.INSTALL_DIR}}/kaban"
+          sudo cp packages/tui/dist/kaban-tui "{{.INSTALL_DIR}}/kaban-tui"
+        fi
+      - echo "Installed kaban and kaban-tui to {{.INSTALL_DIR}}"
+
+  uninstall:
+    desc: Remove binaries from system
+    cmds:
+      - |
+        if [ -w "{{.INSTALL_DIR}}" ]; then
+          rm -f "{{.INSTALL_DIR}}/kaban" "{{.INSTALL_DIR}}/kaban-tui"
+        else
+          sudo rm -f "{{.INSTALL_DIR}}/kaban" "{{.INSTALL_DIR}}/kaban-tui"
+        fi
+      - echo "Uninstalled kaban and kaban-tui from {{.INSTALL_DIR}}"
+
+  update:
+    desc: Rebuild and reinstall binaries
+    cmds:
+      - task: install
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - rm -rf packages/*/dist
+      - echo "Cleaned build artifacts"
+
+  dev:cli:
+    desc: Run CLI in development mode
+    dir: packages/cli
+    cmds:
+      - bun run dev
+
+  dev:tui:
+    desc: Run TUI in development mode
+    dir: packages/tui
+    cmds:
+      - bun run dev
+
+  test:
+    desc: Run all tests
+    cmds:
+      - bun run test
+
+  typecheck:
+    desc: Run type checking
+    cmds:
+      - bun run typecheck
+
+  lint:
+    desc: Run linter
+    cmds:
+      - bun run lint
+
+  format:
+    desc: Format code
+    cmds:
+      - bun run format

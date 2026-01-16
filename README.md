@@ -12,14 +12,37 @@ Kaban is organized as a monorepo consisting of the following packages:
 
 ### Prerequisites
 - [Bun](https://bun.sh/) runtime
-- Node.js 18+
+- [Task](https://taskfile.dev/) (optional, for easy install/update/uninstall)
 
-### Setup
+### Quick Install
 ```bash
 git clone <repo-url>
 cd KabanProject
+task install
+```
+
+### Manual Setup
+```bash
 bun install
 bun run build
+```
+
+### Task Commands
+
+| Command | Description |
+|:---|:---|
+| `task install` | Build and install binaries to /usr/local/bin |
+| `task uninstall` | Remove binaries from system |
+| `task update` | Rebuild and reinstall binaries |
+| `task build` | Build all packages |
+| `task build:bin` | Build CLI and TUI binaries |
+| `task clean` | Remove build artifacts |
+| `task dev:cli` | Run CLI in development mode |
+| `task dev:tui` | Run TUI in development mode |
+
+Custom install directory:
+```bash
+INSTALL_DIR=~/.local/bin task install
 ```
 
 ## CLI Usage
