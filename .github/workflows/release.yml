@@ -41,11 +41,11 @@ jobs:
 
       - name: Publish to npm
         run: |
-          cd packages/core && npm publish --access public
-          cd ../cli && npm publish --access public
-          cd ../tui && npm publish --access public
+          cd packages/core && bun publish --access public
+          cd ../cli && bun publish --access public
+          cd ../tui && bun publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
