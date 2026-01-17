@@ -1,7 +1,8 @@
 {
   "name": "kaban-marketplace",
   "owner": {
-    "name": "Akira"
+    "name": "Aleksandr Beshkenadze",
+    "email": "beshkenadze@gmail.com"
   },
   "metadata": {
     "description": "Kaban project plugins and workflows",
