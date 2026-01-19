@@ -1,6 +1,6 @@
 import type { Config } from "./schemas.js";
 
-export type { Task, Column, Board, Config } from "./schemas.js";
+export type { Board, Column, Config, Task } from "./schemas.js";
 
 export const DEFAULT_CONFIG: Config = {
   board: {

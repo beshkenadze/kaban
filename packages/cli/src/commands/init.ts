@@ -1,5 +1,11 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { BoardService, type Config, createDb, DEFAULT_CONFIG, initializeSchema } from "@kaban-board/core";
+import {
+  BoardService,
+  type Config,
+  createDb,
+  DEFAULT_CONFIG,
+  initializeSchema,
+} from "@kaban-board/core";
 import { Command } from "commander";
 import { getKabanPaths } from "../lib/context.js";
 

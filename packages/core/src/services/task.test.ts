@@ -49,7 +49,9 @@ describe("TaskService", () => {
     });
 
     test("throws on invalid column", async () => {
-      expect(taskService.addTask({ title: "Test", columnId: "invalid" })).rejects.toThrow(KabanError);
+      expect(taskService.addTask({ title: "Test", columnId: "invalid" })).rejects.toThrow(
+        KabanError,
+      );
     });
   });
 

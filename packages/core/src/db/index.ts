@@ -1,8 +1,8 @@
-import { drizzle } from "drizzle-orm/libsql";
-import { createClient, type Client } from "@libsql/client";
-import * as schema from "./schema.js";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import { type Client, createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
+import * as schema from "./schema.js";
 
 export * from "./schema.js";
 
