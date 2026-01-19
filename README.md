@@ -392,6 +392,18 @@ bun run lint
 bun run test
 ```
 
+### Commit Convention
+
+We use [Conventional Commits](https://www.conventionalcommits.org/) for automated releases:
+
+```bash
+feat: add new feature      # → Minor version bump
+fix: resolve bug           # → Patch version bump  
+feat!: breaking change     # → Major version bump
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full details on commit types and the release process.
+
 ## License
 
 [MIT](LICENSE)
