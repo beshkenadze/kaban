@@ -207,6 +207,17 @@ nav {
   font-weight: 600;
 }
 
+.badges-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.badges-row img {
+  height: 22px;
+}
+
 .cta-row {
   display: flex;
   gap: 16px;
@@ -503,6 +514,30 @@ section .desc {
   color: var(--text-secondary);
   margin-bottom: 20px;
   font-size: 0.9rem;
+}
+
+.plugin-block {
+  max-width: 500px;
+}
+
+.plugin-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 20px 0 40px;
+  font-size: 0.85rem;
+}
+
+.plugin-features span {
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plugin-features .marker {
+  color: var(--green);
+  font-weight: 600;
 }
 
 .install-methods {

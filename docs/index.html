@@ -45,6 +45,12 @@
           <span><span class="marker">[x]</span> tui + cli + mcp</span>
         </div>
 
+        <div class="badges-row">
+          <a href="https://www.npmjs.com/package/@kaban-board/cli"><img src="https://img.shields.io/npm/v/@kaban-board/cli?label=npm&color=cb3837" alt="npm version"></a>
+          <a href="https://github.com/beshkenadze/homebrew-tap"><img src="https://img.shields.io/badge/homebrew-tap-fbb040" alt="Homebrew"></a>
+          <a href="https://github.com/beshkenadze/kaban/blob/main/LICENSE"><img src="https://img.shields.io/github/license/beshkenadze/kaban" alt="License"></a>
+        </div>
+
         <div class="cta-row">
           <a href="#quickstart" class="btn btn-primary">&gt; get started</a>
           <a href="https://github.com/beshkenadze/kaban" class="btn btn-secondary">github</a>
@@ -279,8 +285,29 @@ bun install && bun run build
 alias kaban="bun run $(pwd)/packages/cli/src/index.ts"</code></pre>
       </div>
 
-      <h3>AI Code Editors</h3>
-      <p class="install-desc">Add Kaban MCP server to your AI coding assistant:</p>
+      <h3>Claude Code Plugin</h3>
+      <p class="install-desc">Recommended: Install the workflow plugin for TodoWrite sync and session persistence:</p>
+      
+      <div class="code-block plugin-block">
+        <div class="code-header">
+          <span>Claude Code CLI</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><code><span class="comment"># Add the marketplace</span>
+/plugin marketplace add beshkenadze/kaban
+
+<span class="comment"># Install the workflow plugin</span>
+/plugin install kaban-workflow@beshkenadze-kaban</code></pre>
+      </div>
+
+      <div class="plugin-features">
+        <span><span class="marker">+</span> MCP server auto-configured</span>
+        <span><span class="marker">+</span> TodoWrite sync</span>
+        <span><span class="marker">+</span> Session resume hooks</span>
+      </div>
+
+      <h3>Manual MCP Setup</h3>
+      <p class="install-desc">Or manually add Kaban MCP server to your AI coding assistant:</p>
       
       <div class="ai-tools-grid">
         <div class="ai-tool">
