@@ -9,7 +9,7 @@ export const statusCommand = new Command("status")
   .action(async (options) => {
     const json = options.json;
     try {
-      const { taskService, boardService } = getContext();
+      const { taskService, boardService } = await getContext();
       const board = await boardService.getBoard();
       const columns = await boardService.getColumns();
       const tasks = await taskService.listTasks();

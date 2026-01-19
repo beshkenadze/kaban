@@ -37,7 +37,7 @@ export const listCommand = new Command("list")
   .action(async (options) => {
     const json = options.json;
     try {
-      const { taskService, boardService } = getContext();
+      const { taskService, boardService } = await getContext();
 
       let tasks = await taskService.listTasks({
         columnId: options.column,

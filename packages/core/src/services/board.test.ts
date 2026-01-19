@@ -13,12 +13,13 @@ describe("BoardService", () => {
 
   beforeEach(async () => {
     if (existsSync(TEST_DIR)) rmSync(TEST_DIR, { recursive: true });
-    db = createDb(TEST_DB);
+    db = await createDb(TEST_DB);
     await initializeSchema(db);
     service = new BoardService(db);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await db.$close();
     if (existsSync(TEST_DIR)) rmSync(TEST_DIR, { recursive: true });
   });
 

@@ -28,7 +28,7 @@ export const initCommand = new Command("init")
     };
     writeFileSync(configPath, JSON.stringify(config, null, 2));
 
-    const db = createDb(dbPath);
+    const db = await createDb(dbPath);
     await initializeSchema(db);
     const boardService = new BoardService(db);
     await boardService.initializeBoard(config);

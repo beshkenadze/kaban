@@ -19,7 +19,7 @@ async function main() {
   });
 
   let projectRoot = findKabanRoot(process.cwd());
-  let db: ReturnType<typeof createDb>;
+  let db: Awaited<ReturnType<typeof createDb>>;
   let boardService: BoardService;
   let taskService: TaskService;
 
@@ -33,7 +33,7 @@ async function main() {
     taskService = new TaskService(db, boardService);
   } else {
     const { dbPath } = getKabanPaths(projectRoot);
-    db = createDb(dbPath);
+    db = await createDb(dbPath);
     boardService = new BoardService(db);
     taskService = new TaskService(db, boardService);
   }

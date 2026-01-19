@@ -14,7 +14,7 @@ export const addCommand = new Command("add")
   .action(async (title, options) => {
     const json = options.json;
     try {
-      const { taskService, config } = getContext();
+      const { taskService, config } = await getContext();
       const agent = options.agent ?? getAgent();
       const columnId = options.column ?? config.defaults.column;
       const dependsOn = options.dependsOn

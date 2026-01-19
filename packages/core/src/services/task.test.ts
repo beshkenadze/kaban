@@ -15,14 +15,15 @@ describe("TaskService", () => {
 
   beforeEach(async () => {
     if (existsSync(TEST_DIR)) rmSync(TEST_DIR, { recursive: true });
-    db = createDb(TEST_DB);
+    db = await createDb(TEST_DB);
     await initializeSchema(db);
     boardService = new BoardService(db);
     taskService = new TaskService(db, boardService);
     await boardService.initializeBoard(DEFAULT_CONFIG);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await db.$close();
     if (existsSync(TEST_DIR)) rmSync(TEST_DIR, { recursive: true });
   });
 

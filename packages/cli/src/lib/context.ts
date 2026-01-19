@@ -9,7 +9,7 @@ export interface KabanContext {
   taskService: TaskService;
 }
 
-export function getContext(): KabanContext {
+export async function getContext(): Promise<KabanContext> {
   const kabanDir = join(process.cwd(), ".kaban");
   const dbPath = join(kabanDir, "board.db");
   const configPath = join(kabanDir, "config.json");
@@ -19,7 +19,7 @@ export function getContext(): KabanContext {
     process.exit(1);
   }
 
-  const db = createDb(dbPath);
+  const db = await createDb(dbPath);
   const config: Config = JSON.parse(readFileSync(configPath, "utf-8"));
   const boardService = new BoardService(db);
   const taskService = new TaskService(db, boardService);

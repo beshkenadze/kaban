@@ -10,7 +10,7 @@ export const doneCommand = new Command("done")
   .action(async (id, options) => {
     const json = options.json;
     try {
-      const { taskService, boardService } = getContext();
+      const { taskService, boardService } = await getContext();
 
       const tasks = await taskService.listTasks();
       const task = tasks.find((t) => t.id.startsWith(id));

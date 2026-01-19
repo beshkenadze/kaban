@@ -28,14 +28,14 @@ function getKabanPaths(basePath?: string) {
   };
 }
 
-function createContext(basePath?: string) {
+async function createContext(basePath?: string) {
   const { dbPath, configPath } = getKabanPaths(basePath);
 
   if (!existsSync(dbPath)) {
     throw new Error("No board found. Run 'kaban init' first");
   }
 
-  const db = createDb(dbPath);
+  const db = await createDb(dbPath);
   const config: Config = JSON.parse(readFileSync(configPath, "utf-8"));
   const boardService = new BoardService(db);
   const taskService = new TaskService(db, boardService);
@@ -203,7 +203,7 @@ async function startMcpServer(workingDirectory: string) {
         };
         writeFileSync(configPath, JSON.stringify(config, null, 2));
 
-        const db = createDb(dbPath);
+        const db = await createDb(dbPath);
         await initializeSchema(db);
         const boardService = new BoardService(db);
         await boardService.initializeBoard(config);
@@ -226,7 +226,7 @@ async function startMcpServer(workingDirectory: string) {
         };
       }
 
-      const { taskService, boardService } = createContext(workingDirectory);
+      const { taskService, boardService } = await createContext(workingDirectory);
 
       switch (name) {
         case "kaban_add_task": {
@@ -350,7 +350,7 @@ async function startMcpServer(workingDirectory: string) {
     const { uri } = request.params;
 
     try {
-      const { taskService, boardService } = createContext(workingDirectory);
+      const { taskService, boardService } = await createContext(workingDirectory);
 
       if (uri === "kaban://board/status") {
         const board = await boardService.getBoard();

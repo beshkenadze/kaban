@@ -13,7 +13,7 @@ export const moveCommand = new Command("move")
   .action(async (id, column, options) => {
     const json = options.json;
     try {
-      const { taskService, boardService } = getContext();
+      const { taskService, boardService } = await getContext();
 
       const tasks = await taskService.listTasks();
       const task = tasks.find((t) => t.id.startsWith(id));
