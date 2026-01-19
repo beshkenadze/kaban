@@ -6,5 +6,11 @@
     "name": "Aleksandr Beshkenadze",
     "email": "beshkenadze@gmail.com"
   },
-  "keywords": ["kanban", "todo", "workflow", "task-tracking"]
+  "keywords": ["kanban", "todo", "workflow", "task-tracking"],
+  "mcp": {
+    "kaban-todo": {
+      "command": "npx",
+      "args": ["-y", "@kaban-board/cli", "mcp"]
+    }
+  }
 }
