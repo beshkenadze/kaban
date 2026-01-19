@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4](https://github.com/beshkenadze/kaban/compare/v0.2.3...v0.2.4) (2026-01-19)
+
+
+### Bug Fixes
+
+* **ci:** split release-please and publish workflows ([1d6cdbd](https://github.com/beshkenadze/kaban/commit/1d6cdbd122d08d1faf7d744a5000077375b979d8))
+
 ## [0.2.3](https://github.com/beshkenadze/kaban/compare/v0.2.2...v0.2.3) (2026-01-19)
 
 
