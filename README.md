@@ -274,22 +274,27 @@ kaban tui
 
 Add Kaban MCP server to your AI coding assistant:
 
-### Claude Code Plugin (Recommended)
+### Claude Code Skill (Recommended)
 
-Install the Kaban workflow plugin for TodoWrite sync and session persistence:
+Install the Kaban workflow skill for TodoWrite sync and session persistence:
 
 ```bash
-# Add the marketplace
-/plugin marketplace add beshkenadze/kaban
-
-# Install the workflow plugin
-/plugin install kaban-workflow@beshkenadze-kaban
+npx add-skill beshkenadze/kaban
+# or
+bunx add-skill beshkenadze/kaban
 ```
 
-The plugin includes:
+The skill includes:
 - **MCP server** — Auto-configured, no manual setup needed
 - **Kaban workflow skill** — Syncs with TodoWrite, resumes tasks across sessions
 - **Session hooks** — Auto-checks for in-progress tasks on session start
+
+#### Alternative: Plugin Marketplace
+
+```bash
+/plugin marketplace add beshkenadze/kaban
+/plugin install kaban-workflow@beshkenadze-kaban
+```
 
 ### Claude Code / Claude Desktop (Manual MCP)
 
