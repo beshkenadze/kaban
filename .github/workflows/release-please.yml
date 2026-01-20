@@ -8,14 +8,91 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  id-token: write
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
     steps:
       - name: Release Please
+        id: release
         uses: googleapis/release-please-action@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Node.js (for npm OIDC)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build
+        run: bun run build
+
+      - name: Setup kaban in PATH
+        run: |
+          mkdir -p $HOME/.local/bin
+          printf '#!/bin/bash\nexec bun "${{ github.workspace }}/packages/cli/dist/index.js" "$@"\n' > $HOME/.local/bin/kaban
+          chmod +x $HOME/.local/bin/kaban
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Run tests
+        run: |
+          cd packages/core && bun test
+          cd ../cli && bun test
+
+      - name: Publish to npm
+        run: |
+          cd packages/core && bun pm pack --destination /tmp/
+          cd ../cli && bun pm pack --destination /tmp/
+          cd ../tui && bun pm pack --destination /tmp/
+          
+          npm publish /tmp/kaban-board-core-*.tgz --provenance --access public
+          npm publish /tmp/kaban-board-cli-*.tgz --provenance --access public
+          npm publish /tmp/kaban-board-tui-*.tgz --provenance --access public
+
+  homebrew:
+    needs: [release-please, publish]
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for npm propagation
+        run: sleep 60
+
+      - name: Update Homebrew formula
+        uses: mislav/bump-homebrew-formula-action@v3
+        with:
+          formula-name: kaban
+          formula-path: Formula/kaban.rb
+          homebrew-tap: beshkenadze/homebrew-tap
+          tag-name: ${{ needs.release-please.outputs.tag_name }}
+          download-url: https://registry.npmjs.org/@kaban-board/cli/-/cli-${{ needs.release-please.outputs.version }}.tgz
+          commit-message: |
+            kaban ${{ needs.release-please.outputs.version }}
+            
+            Automated update from https://github.com/beshkenadze/kaban
+        env:
+          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
