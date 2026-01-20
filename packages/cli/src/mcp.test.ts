@@ -102,7 +102,7 @@ describe("Bug Regression: taskId parameter should not be undefined", () => {
 });
 
 describe("MCP Task Operations with Aliases", () => {
-  let db: ReturnType<typeof createDb>;
+  let db: Awaited<ReturnType<typeof createDb>>;
   let boardService: BoardService;
   let taskService: TaskService;
 
@@ -116,7 +116,7 @@ describe("MCP Task Operations with Aliases", () => {
     };
     writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 
-    db = createDb(DB_PATH);
+    db = await createDb(DB_PATH);
     await initializeSchema(db);
     boardService = new BoardService(db);
     await boardService.initializeBoard(config);
