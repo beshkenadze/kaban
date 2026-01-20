@@ -58,23 +58,21 @@ export const tuiCommand = new Command("tui")
       return;
     }
 
+    // TUI requires Bun (uses bun:ffi via @opentui/core)
+    if (!useBun) {
+      console.error("TUI requires Bun. Install: curl -fsSL https://bun.sh/install | bash");
+      process.exit(1);
+    }
+
     // 4. Production npm: Use the bundled @kaban-board/tui dependency
     const tuiEntry = resolveTuiPackage();
     if (tuiEntry) {
-      const runtime = useBun ? "bun" : "node";
-      const child = spawn(runtime, [tuiEntry, ...args], { stdio: "inherit", cwd });
+      const child = spawn("bun", [tuiEntry, ...args], { stdio: "inherit", cwd });
       child.on("exit", (code) => process.exit(code ?? 0));
       return;
     }
 
-    // 5. Fallback: bunx or npx
-    if (useBun) {
-      const child = spawn("bun", ["x", "@kaban-board/tui", ...args], { stdio: "inherit", cwd });
-      child.on("exit", (code) => process.exit(code ?? 0));
-      return;
-    }
-
-    const npxCmd = process.platform === "win32" ? "npx.cmd" : "npx";
-    const child = spawn(npxCmd, ["--yes", "@kaban-board/tui", ...args], { stdio: "inherit", cwd });
+    // 5. Fallback: bunx
+    const child = spawn("bun", ["x", "@kaban-board/tui", ...args], { stdio: "inherit", cwd });
     child.on("exit", (code) => process.exit(code ?? 0));
   });

@@ -15,8 +15,5 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11"
-  },
-  "dependencies": {
-    "@libsql/darwin-arm64": "^0.5.22"
   }
 }
