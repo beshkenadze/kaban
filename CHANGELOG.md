@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6](https://github.com/beshkenadze/kaban/compare/v0.2.5...v0.2.6) (2026-01-20)
+
+
+### Features
+
+* **mcp:** add parameter aliasing and improve TUI runtime detection ([2a8b489](https://github.com/beshkenadze/kaban/commit/2a8b48962c6cd94789b4d6fa05888f2b06136bd9))
+* **mcp:** add parameter aliasing and improve TUI runtime detection ([7a3e8e6](https://github.com/beshkenadze/kaban/commit/7a3e8e6c0429d286524d44a1db0dd1289e147a9a)), closes [#1](https://github.com/beshkenadze/kaban/issues/1)
+
 ## [0.2.5](https://github.com/beshkenadze/kaban/compare/v0.2.4...v0.2.5) (2026-01-20)
 
 
