@@ -183,4 +183,102 @@ describe("TaskService", () => {
       expect(updated.version).toBe(2);
     });
   });
+
+  describe("archiveTasks", () => {
+    test("archives tasks by status (column)", async () => {
+      const task1 = await taskService.addTask({ title: "Task 1", columnId: "done" });
+      await taskService.moveTask(task1.id, "done");
+      const task2 = await taskService.addTask({ title: "Task 2", columnId: "done" });
+      await taskService.moveTask(task2.id, "done");
+      const task3 = await taskService.addTask({ title: "Task 3", columnId: "todo" });
+
+      const result = await taskService.archiveTasks("default", { status: "done" });
+
+      expect(result.archivedCount).toBe(2);
+      expect(result.taskIds).toContain(task1.id);
+      expect(result.taskIds).toContain(task2.id);
+      expect(result.taskIds).not.toContain(task3.id);
+
+      const archivedTask = await taskService.getTask(task1.id);
+      expect(archivedTask?.archived).toBe(true);
+      expect(archivedTask?.archivedAt).not.toBeNull();
+
+      const notArchivedTask = await taskService.getTask(task3.id);
+      expect(notArchivedTask?.archived).toBe(false);
+    });
+
+    test("archives tasks older than a date", async () => {
+      const oldTask = await taskService.addTask({ title: "Old task" });
+      const newTask = await taskService.addTask({ title: "New task" });
+
+      const cutoffDate = new Date(Date.now() + 1000);
+
+      const result = await taskService.archiveTasks("default", { olderThan: cutoffDate });
+
+      expect(result.archivedCount).toBe(2);
+      expect(result.taskIds).toContain(oldTask.id);
+      expect(result.taskIds).toContain(newTask.id);
+    });
+
+    test("archives specific tasks by IDs", async () => {
+      const task1 = await taskService.addTask({ title: "Task 1" });
+      const task2 = await taskService.addTask({ title: "Task 2" });
+      const task3 = await taskService.addTask({ title: "Task 3" });
+
+      const result = await taskService.archiveTasks("default", { taskIds: [task1.id, task3.id] });
+
+      expect(result.archivedCount).toBe(2);
+      expect(result.taskIds).toContain(task1.id);
+      expect(result.taskIds).toContain(task3.id);
+      expect(result.taskIds).not.toContain(task2.id);
+
+      const archived1 = await taskService.getTask(task1.id);
+      const archived3 = await taskService.getTask(task3.id);
+      const notArchived = await taskService.getTask(task2.id);
+
+      expect(archived1?.archived).toBe(true);
+      expect(archived3?.archived).toBe(true);
+      expect(notArchived?.archived).toBe(false);
+    });
+
+    test("combines criteria with AND logic", async () => {
+      const doneOldTask = await taskService.addTask({ title: "Done old", columnId: "done" });
+      await taskService.moveTask(doneOldTask.id, "done");
+      const todoOldTask = await taskService.addTask({ title: "Todo old", columnId: "todo" });
+
+      const cutoffDate = new Date(Date.now() + 1000);
+
+      const result = await taskService.archiveTasks("default", {
+        status: "done",
+        olderThan: cutoffDate,
+      });
+
+      expect(result.archivedCount).toBe(1);
+      expect(result.taskIds).toContain(doneOldTask.id);
+      expect(result.taskIds).not.toContain(todoOldTask.id);
+    });
+
+    test("throws error if no criteria provided", async () => {
+      await taskService.addTask({ title: "Task" });
+
+      expect(taskService.archiveTasks("default", {})).rejects.toThrow(
+        /At least one criteria must be provided/,
+      );
+    });
+
+    test("skips already-archived tasks", async () => {
+      const task1 = await taskService.addTask({ title: "Task 1", columnId: "done" });
+      await taskService.moveTask(task1.id, "done");
+      const task2 = await taskService.addTask({ title: "Task 2", columnId: "done" });
+      await taskService.moveTask(task2.id, "done");
+
+      await taskService.archiveTasks("default", { taskIds: [task1.id] });
+
+      const result = await taskService.archiveTasks("default", { status: "done" });
+
+      expect(result.archivedCount).toBe(1);
+      expect(result.taskIds).toContain(task2.id);
+      expect(result.taskIds).not.toContain(task1.id);
+    });
+  });
 });

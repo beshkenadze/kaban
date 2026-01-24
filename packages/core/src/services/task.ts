@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, lt, sql } from "drizzle-orm";
 import { ulid } from "ulid";
 import { type DB, tasks } from "../db/index.js";
 import type {
@@ -17,6 +17,17 @@ export type UpdateTaskInput = UpdateTaskInputSchema;
 
 export interface MoveTaskOptions {
   force?: boolean;
+}
+
+export interface ArchiveTasksCriteria {
+  status?: string;
+  olderThan?: Date;
+  taskIds?: string[];
+}
+
+export interface ArchiveTasksResult {
+  archivedCount: number;
+  taskIds: string[];
 }
 
 export class TaskService {
@@ -217,5 +228,55 @@ export class TaskService {
       .from(tasks)
       .where(eq(tasks.columnId, columnId));
     return result[0]?.count ?? 0;
+  }
+
+  async archiveTasks(
+    _boardId: string,
+    criteria: ArchiveTasksCriteria,
+  ): Promise<ArchiveTasksResult> {
+    const hasCriteria = criteria.status || criteria.olderThan || criteria.taskIds?.length;
+    if (!hasCriteria) {
+      throw new KabanError("At least one criteria must be provided", ExitCode.VALIDATION);
+    }
+
+    const conditions = [eq(tasks.archived, false)];
+
+    if (criteria.status) {
+      conditions.push(eq(tasks.columnId, criteria.status));
+    }
+
+    if (criteria.olderThan) {
+      conditions.push(lt(tasks.createdAt, criteria.olderThan));
+    }
+
+    if (criteria.taskIds?.length) {
+      conditions.push(inArray(tasks.id, criteria.taskIds));
+    }
+
+    const matchingTasks = await this.db
+      .select({ id: tasks.id })
+      .from(tasks)
+      .where(and(...conditions));
+
+    if (matchingTasks.length === 0) {
+      return { archivedCount: 0, taskIds: [] };
+    }
+
+    const taskIds = matchingTasks.map((t) => t.id);
+    const now = new Date();
+
+    await this.db
+      .update(tasks)
+      .set({
+        archived: true,
+        archivedAt: now,
+        updatedAt: now,
+      })
+      .where(inArray(tasks.id, taskIds));
+
+    return {
+      archivedCount: taskIds.length,
+      taskIds,
+    };
   }
 }
