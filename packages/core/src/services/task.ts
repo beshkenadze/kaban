@@ -279,4 +279,40 @@ export class TaskService {
       taskIds,
     };
   }
+
+  async restoreTask(taskId: string, targetColumnId?: string): Promise<Task> {
+    const task = await this.getTask(taskId);
+    if (!task) {
+      throw new KabanError(`Task '${taskId}' not found`, ExitCode.NOT_FOUND);
+    }
+
+    if (!task.archived) {
+      throw new KabanError(`Task '${taskId}' is not archived`, ExitCode.VALIDATION);
+    }
+
+    const columnId = targetColumnId ?? task.columnId;
+
+    if (targetColumnId) {
+      validateColumnId(targetColumnId);
+      const column = await this.boardService.getColumn(targetColumnId);
+      if (!column) {
+        throw new KabanError(`Column '${targetColumnId}' does not exist`, ExitCode.VALIDATION);
+      }
+    }
+
+    const now = new Date();
+
+    await this.db
+      .update(tasks)
+      .set({
+        archived: false,
+        archivedAt: null,
+        columnId,
+        version: task.version + 1,
+        updatedAt: now,
+      })
+      .where(eq(tasks.id, taskId));
+
+    return this.getTaskOrThrow(taskId);
+  }
 }

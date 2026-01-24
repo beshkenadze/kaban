@@ -281,4 +281,42 @@ describe("TaskService", () => {
       expect(result.taskIds).not.toContain(task1.id);
     });
   });
+
+  describe("restoreTask", () => {
+    test("restores archived task to same column", async () => {
+      const task = await taskService.addTask({ title: "To archive", columnId: "done" });
+      await taskService.archiveTasks("default", { taskIds: [task.id] });
+
+      const archivedTask = await taskService.getTask(task.id);
+      expect(archivedTask?.archived).toBe(true);
+
+      const restored = await taskService.restoreTask(task.id);
+
+      expect(restored.archived).toBe(false);
+      expect(restored.archivedAt).toBeNull();
+      expect(restored.columnId).toBe("done");
+      expect(restored.version).toBe(archivedTask!.version + 1);
+    });
+
+    test("restores archived task to different column", async () => {
+      const task = await taskService.addTask({ title: "To archive", columnId: "done" });
+      await taskService.archiveTasks("default", { taskIds: [task.id] });
+
+      const restored = await taskService.restoreTask(task.id, "todo");
+
+      expect(restored.archived).toBe(false);
+      expect(restored.archivedAt).toBeNull();
+      expect(restored.columnId).toBe("todo");
+    });
+
+    test("throws error if task not found", async () => {
+      expect(taskService.restoreTask("01ARZ3NDEKTSV4RRFFQ69G5FAV")).rejects.toThrow(/not found/);
+    });
+
+    test("throws error if task is not archived", async () => {
+      const task = await taskService.addTask({ title: "Active task" });
+
+      expect(taskService.restoreTask(task.id)).rejects.toThrow(/not archived/);
+    });
+  });
 });
