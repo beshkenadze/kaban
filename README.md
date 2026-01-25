@@ -147,6 +147,7 @@ Or if installed globally:
 |------|-------------|
 | `kaban_init` | Initialize a new board |
 | `kaban_add_task` | Add a task |
+| `kaban_add_task_checked` | Add task with duplicate detection |
 | `kaban_get_task` | Get task details |
 | `kaban_list_tasks` | List tasks with filters |
 | `kaban_move_task` | Move task to column |
@@ -154,6 +155,15 @@ Or if installed globally:
 | `kaban_delete_task` | Delete a task |
 | `kaban_complete_task` | Mark task as done |
 | `kaban_status` | Get board summary |
+| `kaban_archive_tasks` | Archive completed/stale tasks |
+| `kaban_search_archive` | Full-text search in archive |
+| `kaban_restore_task` | Restore task from archive |
+| `kaban_purge_archive` | Permanently delete archived tasks |
+| `kaban_archive_stats` | Get archive statistics |
+| `kaban_reset_board` | Delete ALL tasks (destructive) |
+| `kaban_add_dependency` | Add task dependency |
+| `kaban_remove_dependency` | Remove task dependency |
+| `kaban_check_dependencies` | Check if dependencies resolved |
 
 ### MCP Resources
 
