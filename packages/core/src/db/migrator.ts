@@ -25,11 +25,13 @@ interface Migration {
 // Import generated migrations - these get bundled as text (or paths in dev)
 import journal from "../../drizzle/meta/_journal.json";
 import sql0000 from "../../drizzle/0000_init.sql";
-import sql0001 from "../../drizzle/0001_add_fts5.sql";
+import sql0001 from "../../drizzle/0001_add_archived.sql";
+import sql0002 from "../../drizzle/0002_add_fts5.sql";
 
 const migrationSql: Record<string, string> = {
   "0000_init": sql0000,
-  "0001_add_fts5": sql0001,
+  "0001_add_archived": sql0001,
+  "0002_add_fts5": sql0002,
 };
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -107,10 +109,50 @@ async function recordMigration(db: DB, tag: string): Promise<void> {
   await db.$runRaw(`INSERT INTO __drizzle_migrations (tag, created_at) VALUES ('${tag}', ${now})`);
 }
 
+async function isLegacyDatabase(db: DB): Promise<boolean> {
+  // Check if boards table exists but __drizzle_migrations doesn't
+  try {
+    const client = db.$client as unknown;
+
+    // bun:sqlite client
+    if (client && typeof (client as { prepare?: unknown }).prepare === "function") {
+      const bunClient = client as { prepare: (sql: string) => { all: () => unknown[] } };
+      const tables = bunClient
+        .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='boards'")
+        .all();
+      return tables.length > 0;
+    }
+
+    // libsql client
+    if (client && typeof (client as { execute?: unknown }).execute === "function") {
+      const libsqlClient = client as {
+        execute: (sql: string) => Promise<{ rows: unknown[] }>;
+      };
+      const res = await libsqlClient.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='boards'"
+      );
+      return res.rows.length > 0;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export async function runMigrations(db: DB): Promise<{ applied: string[] }> {
+  const isLegacy = await isLegacyDatabase(db);
   await createMigrationsTable(db);
 
   const applied = await getAppliedMigrations(db);
+
+  // If this is a legacy database (had tables before migration tracking),
+  // mark the initial migration as applied without running it
+  if (isLegacy && applied.size === 0) {
+    await recordMigration(db, "0000_init");
+    applied.add("0000_init");
+  }
+
   const migrations = getMigrations();
   const toApply = migrations.filter((m) => !applied.has(m.tag));
 
@@ -128,7 +170,17 @@ export async function runMigrations(db: DB): Promise<{ applied: string[] }> {
       .filter(Boolean);
 
     for (const stmt of statements) {
-      await db.$runRaw(stmt);
+      try {
+        await db.$runRaw(stmt);
+      } catch (err) {
+        // Ignore "duplicate column name" errors for ALTER TABLE ADD COLUMN
+        // This allows idempotent migrations on legacy databases
+        const msg = String(err);
+        if (stmt.includes("ADD COLUMN") && msg.includes("duplicate column name")) {
+          continue;
+        }
+        throw err;
+      }
     }
 
     await recordMigration(db, migration.tag);

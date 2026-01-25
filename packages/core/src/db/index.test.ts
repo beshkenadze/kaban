@@ -176,7 +176,8 @@ describe("runMigrations", () => {
 
     // Should have applied both migrations
     expect(result.applied).toContain("0000_init");
-    expect(result.applied).toContain("0001_add_fts5");
+    expect(result.applied).toContain("0001_add_archived");
+    expect(result.applied).toContain("0002_add_fts5");
 
     // Verify we can query the DB
     await db.select().from(boards).limit(1);

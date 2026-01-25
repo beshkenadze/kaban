@@ -12,8 +12,15 @@
     {
       "idx": 1,
       "version": "6",
+      "when": 1769351198000,
+      "tag": "0001_add_archived",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
       "when": 1769351200000,
-      "tag": "0001_add_fts5",
+      "tag": "0002_add_fts5",
       "breakpoints": true
     }
   ]
