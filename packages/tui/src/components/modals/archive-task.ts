@@ -99,7 +99,7 @@ export async function showArchiveTaskModal(
   state.modalOverlay = overlay;
   state.activeModal = "archiveTask";
   state.onModalConfirm = async () => {
-    await state.taskService.archiveTasks("default", { taskIds: [taskId] });
+    await state.taskService.archiveTasks({ taskIds: [taskId] });
     closeModal(state);
     await onArchived();
   };

@@ -171,7 +171,7 @@ describe("TaskService", () => {
     test("excludes archived tasks by default", async () => {
       const task1 = await taskService.addTask({ title: "Active task" });
       const task2 = await taskService.addTask({ title: "Archived task" });
-      await taskService.archiveTasks("default", { taskIds: [task2.id] });
+      await taskService.archiveTasks({ taskIds: [task2.id] });
 
       const tasks = await taskService.listTasks();
 
@@ -183,7 +183,7 @@ describe("TaskService", () => {
     test("includes archived tasks when includeArchived is true", async () => {
       const task1 = await taskService.addTask({ title: "Active task" });
       const task2 = await taskService.addTask({ title: "Archived task" });
-      await taskService.archiveTasks("default", { taskIds: [task2.id] });
+      await taskService.archiveTasks({ taskIds: [task2.id] });
 
       const tasks = await taskService.listTasks({ includeArchived: true });
 
@@ -197,7 +197,7 @@ describe("TaskService", () => {
       const task1 = await taskService.addTask({ title: "Active todo", columnId: "todo" });
       const task2 = await taskService.addTask({ title: "Archived todo", columnId: "todo" });
       const task3 = await taskService.addTask({ title: "Active backlog", columnId: "backlog" });
-      await taskService.archiveTasks("default", { taskIds: [task2.id] });
+      await taskService.archiveTasks({ taskIds: [task2.id] });
 
       const todoTasks = await taskService.listTasks({ columnId: "todo" });
 
@@ -345,7 +345,7 @@ describe("TaskService", () => {
       await taskService.moveTask(task2.id, "done");
       const task3 = await taskService.addTask({ title: "Task 3", columnId: "todo" });
 
-      const result = await taskService.archiveTasks("default", { status: "done" });
+      const result = await taskService.archiveTasks({ status: "done" });
 
       expect(result.archivedCount).toBe(2);
       expect(result.taskIds).toContain(task1.id);
@@ -366,7 +366,7 @@ describe("TaskService", () => {
 
       const cutoffDate = new Date(Date.now() + 1000);
 
-      const result = await taskService.archiveTasks("default", { olderThan: cutoffDate });
+      const result = await taskService.archiveTasks({ olderThan: cutoffDate });
 
       expect(result.archivedCount).toBe(2);
       expect(result.taskIds).toContain(oldTask.id);
@@ -378,7 +378,7 @@ describe("TaskService", () => {
       const task2 = await taskService.addTask({ title: "Task 2" });
       const task3 = await taskService.addTask({ title: "Task 3" });
 
-      const result = await taskService.archiveTasks("default", { taskIds: [task1.id, task3.id] });
+      const result = await taskService.archiveTasks({ taskIds: [task1.id, task3.id] });
 
       expect(result.archivedCount).toBe(2);
       expect(result.taskIds).toContain(task1.id);
@@ -401,7 +401,7 @@ describe("TaskService", () => {
 
       const cutoffDate = new Date(Date.now() + 1000);
 
-      const result = await taskService.archiveTasks("default", {
+      const result = await taskService.archiveTasks({
         status: "done",
         olderThan: cutoffDate,
       });
@@ -414,7 +414,7 @@ describe("TaskService", () => {
     test("throws error if no criteria provided", async () => {
       await taskService.addTask({ title: "Task" });
 
-      expect(taskService.archiveTasks("default", {})).rejects.toThrow(
+      expect(taskService.archiveTasks({})).rejects.toThrow(
         /At least one criteria must be provided/,
       );
     });
@@ -425,9 +425,9 @@ describe("TaskService", () => {
       const task2 = await taskService.addTask({ title: "Task 2", columnId: "done" });
       await taskService.moveTask(task2.id, "done");
 
-      await taskService.archiveTasks("default", { taskIds: [task1.id] });
+      await taskService.archiveTasks({ taskIds: [task1.id] });
 
-      const result = await taskService.archiveTasks("default", { status: "done" });
+      const result = await taskService.archiveTasks({ status: "done" });
 
       expect(result.archivedCount).toBe(1);
       expect(result.taskIds).toContain(task2.id);
@@ -438,7 +438,7 @@ describe("TaskService", () => {
   describe("restoreTask", () => {
     test("restores archived task to same column", async () => {
       const task = await taskService.addTask({ title: "To archive", columnId: "done" });
-      await taskService.archiveTasks("default", { taskIds: [task.id] });
+      await taskService.archiveTasks({ taskIds: [task.id] });
 
       const archivedTask = await taskService.getTask(task.id);
       expect(archivedTask?.archived).toBe(true);
@@ -453,7 +453,7 @@ describe("TaskService", () => {
 
     test("restores archived task to different column", async () => {
       const task = await taskService.addTask({ title: "To archive", columnId: "done" });
-      await taskService.archiveTasks("default", { taskIds: [task.id] });
+      await taskService.archiveTasks({ taskIds: [task.id] });
 
       const restored = await taskService.restoreTask(task.id, "todo");
 
@@ -474,7 +474,7 @@ describe("TaskService", () => {
 
     test("throws error if target column does not exist", async () => {
       const task = await taskService.addTask({ title: "To archive", columnId: "done" });
-      await taskService.archiveTasks("default", { taskIds: [task.id] });
+      await taskService.archiveTasks({ taskIds: [task.id] });
 
       expect(taskService.restoreTask(task.id, "nonexistent_column")).rejects.toThrow(
         /does not exist/,
@@ -486,7 +486,7 @@ describe("TaskService", () => {
     test("searches archived tasks by title", async () => {
       const task1 = await taskService.addTask({ title: "Fix authentication bug" });
       const task2 = await taskService.addTask({ title: "Add login feature" });
-      await taskService.archiveTasks("default", { taskIds: [task1.id, task2.id] });
+      await taskService.archiveTasks({ taskIds: [task1.id, task2.id] });
 
       const result = await taskService.searchArchive("authentication");
 
@@ -504,7 +504,7 @@ describe("TaskService", () => {
         title: "Task Two",
         description: "This is about UI changes",
       });
-      await taskService.archiveTasks("default", { taskIds: [task1.id, task2.id] });
+      await taskService.archiveTasks({ taskIds: [task1.id, task2.id] });
 
       const result = await taskService.searchArchive("database");
 
@@ -516,7 +516,7 @@ describe("TaskService", () => {
     test("returns only archived tasks, not active ones", async () => {
       const archivedTask = await taskService.addTask({ title: "Archived search target" });
       await taskService.addTask({ title: "Active search target" });
-      await taskService.archiveTasks("default", { taskIds: [archivedTask.id] });
+      await taskService.archiveTasks({ taskIds: [archivedTask.id] });
 
       const result = await taskService.searchArchive("search target");
 
@@ -530,7 +530,7 @@ describe("TaskService", () => {
       for (let i = 1; i <= 5; i++) {
         tasks.push(await taskService.addTask({ title: `Search item ${i}` }));
       }
-      await taskService.archiveTasks("default", { taskIds: tasks.map((t) => t.id) });
+      await taskService.archiveTasks({ taskIds: tasks.map((t) => t.id) });
 
       const page1 = await taskService.searchArchive("Search item", { limit: 2, offset: 0 });
       const page2 = await taskService.searchArchive("Search item", { limit: 2, offset: 2 });
@@ -549,7 +549,7 @@ describe("TaskService", () => {
       const task1 = await taskService.addTask({ title: "Archived One" });
       const task2 = await taskService.addTask({ title: "Archived Two" });
       await taskService.addTask({ title: "Active Task" });
-      await taskService.archiveTasks("default", { taskIds: [task1.id, task2.id] });
+      await taskService.archiveTasks({ taskIds: [task1.id, task2.id] });
 
       const result = await taskService.searchArchive("");
 
@@ -563,7 +563,7 @@ describe("TaskService", () => {
       for (let i = 1; i <= 10; i++) {
         tasks.push(await taskService.addTask({ title: `Matching keyword ${i}` }));
       }
-      await taskService.archiveTasks("default", { taskIds: tasks.map((t) => t.id) });
+      await taskService.archiveTasks({ taskIds: tasks.map((t) => t.id) });
 
       const result = await taskService.searchArchive("keyword", { limit: 3 });
 
@@ -577,7 +577,7 @@ describe("TaskService", () => {
       const task1 = await taskService.addTask({ title: "Archived 1" });
       const task2 = await taskService.addTask({ title: "Archived 2" });
       const task3 = await taskService.addTask({ title: "Active task" });
-      await taskService.archiveTasks("default", { taskIds: [task1.id, task2.id] });
+      await taskService.archiveTasks({ taskIds: [task1.id, task2.id] });
 
       const result = await taskService.purgeArchive();
 
@@ -590,12 +590,12 @@ describe("TaskService", () => {
     test("respects olderThan criteria", async () => {
       const task1 = await taskService.addTask({ title: "Archived 1" });
       const task2 = await taskService.addTask({ title: "Archived 2" });
-      await taskService.archiveTasks("default", { taskIds: [task1.id, task2.id] });
+      await taskService.archiveTasks({ taskIds: [task1.id, task2.id] });
 
       await new Promise((resolve) => setTimeout(resolve, 1100));
 
       const task3 = await taskService.addTask({ title: "Archived 3 - newer" });
-      await taskService.archiveTasks("default", { taskIds: [task3.id] });
+      await taskService.archiveTasks({ taskIds: [task3.id] });
 
       const archivedTask3 = await taskService.getTask(task3.id);
       const cutoffDate = archivedTask3!.archivedAt!;
@@ -611,7 +611,7 @@ describe("TaskService", () => {
     test("does not delete non-archived tasks", async () => {
       const archivedTask = await taskService.addTask({ title: "Archived" });
       const activeTask = await taskService.addTask({ title: "Active" });
-      await taskService.archiveTasks("default", { taskIds: [archivedTask.id] });
+      await taskService.archiveTasks({ taskIds: [archivedTask.id] });
 
       const result = await taskService.purgeArchive();
 
@@ -626,7 +626,7 @@ describe("TaskService", () => {
       const task1 = await taskService.addTask({ title: "Task 1" });
       const task2 = await taskService.addTask({ title: "Task 2" });
       const task3 = await taskService.addTask({ title: "Task 3" });
-      await taskService.archiveTasks("default", { taskIds: [task3.id] });
+      await taskService.archiveTasks({ taskIds: [task3.id] });
 
       const result = await taskService.resetBoard();
 
@@ -792,7 +792,7 @@ describe("TaskService", () => {
     test("does not check archived tasks", async () => {
       const task = await taskService.addTask({ title: "Fix login bug" });
       await taskService.moveTask(task.id, "done");
-      await taskService.archiveTasks("default", { taskIds: [task.id] });
+      await taskService.archiveTasks({ taskIds: [task.id] });
 
       const similar = await taskService.findSimilarTasks("Fix login issue");
 
@@ -862,7 +862,7 @@ describe("TaskService", () => {
       await taskService.moveTask(done1.id, "done");
       const done2 = await taskService.addTask({ title: "Done 2" });
       await taskService.moveTask(done2.id, "done");
-      await taskService.archiveTasks("default", { status: "done" });
+      await taskService.archiveTasks({ status: "done" });
 
       const stats = await taskService.getArchiveStats();
 

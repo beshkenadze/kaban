@@ -38,6 +38,7 @@ export interface ViewTaskActions {
   onDelete: () => Promise<void>;
   onEdit: () => Promise<void>;
   onArchive: () => Promise<void>;
+  onRestore: () => Promise<void>;
 }
 
 export interface ViewTaskRuntime {

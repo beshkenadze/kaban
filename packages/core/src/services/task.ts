@@ -294,10 +294,7 @@ export class TaskService {
     return result[0]?.count ?? 0;
   }
 
-  async archiveTasks(
-    _boardId: string,
-    criteria: ArchiveTasksCriteria,
-  ): Promise<ArchiveTasksResult> {
+  async archiveTasks(criteria: ArchiveTasksCriteria): Promise<ArchiveTasksResult> {
     const hasCriteria = criteria.status || criteria.olderThan || criteria.taskIds?.length;
     if (!hasCriteria) {
       throw new KabanError("At least one criteria must be provided", ExitCode.VALIDATION);

@@ -65,7 +65,7 @@ export const archiveCommand = new Command("archive")
         return;
       }
 
-      const result = await taskService.archiveTasks("default", criteria);
+      const result = await taskService.archiveTasks(criteria);
 
       if (json) {
         outputSuccess(result);

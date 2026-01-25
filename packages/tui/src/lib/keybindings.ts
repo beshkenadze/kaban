@@ -119,6 +119,10 @@ async function openViewModalForTask(state: AppState, taskIdOverride?: string): P
           closeModal(state);
           await openArchiveModal(state);
         },
+        onRestore: async () => {
+          closeModal(state);
+          await showRestoreTaskModal(state, () => refreshBoard(state));
+        },
       },
       taskIdOverride,
     );
@@ -269,8 +273,16 @@ const modalBindings: Record<ModalType, KeyBindings> = {
        await openDeleteModal(state);
      },
      x: async (state) => {
-       closeModal(state);
-       await openArchiveModal(state);
+       if (!state.selectedTask?.archived) {
+         closeModal(state);
+         await openArchiveModal(state);
+       }
+     },
+     r: async (state) => {
+       if (state.selectedTask?.archived) {
+         closeModal(state);
+         await showRestoreTaskModal(state, () => refreshBoard(state));
+       }
      },
      e: openEditModal,
      c: copyTaskId,

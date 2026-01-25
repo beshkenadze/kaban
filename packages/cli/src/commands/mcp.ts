@@ -512,7 +512,7 @@ async function startMcpServer(workingDirectory: string) {
             });
           }
 
-          const result = await taskService.archiveTasks("default", {
+          const result = await taskService.archiveTasks({
             taskIds: tasksToArchive.map((t) => t.id),
           });
           return jsonResponse(result);
