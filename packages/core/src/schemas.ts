@@ -119,6 +119,7 @@ export const ListTasksFilterSchema = z.object({
   agent: AgentNameSchema.optional(),
   assignee: AgentNameSchema.optional(),
   blocked: z.boolean().optional(),
+  includeArchived: z.boolean().optional(),
 });
 
 export const GetTaskInputSchema = z.object({
@@ -191,6 +192,7 @@ const ListTasksFilterJsonSchema = z.object({
   columnId: ColumnIdSchema.optional(),
   agent: AgentNameBaseSchema.optional(),
   blocked: z.boolean().optional(),
+  includeArchived: z.boolean().optional(),
 });
 
 const ColumnConfigJsonSchema = z.object({

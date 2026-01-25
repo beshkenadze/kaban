@@ -106,6 +106,11 @@ export class TaskService {
 
   async listTasks(filter?: ListTasksFilter): Promise<Task[]> {
     const conditions = [];
+
+    if (!filter?.includeArchived) {
+      conditions.push(eq(tasks.archived, false));
+    }
+
     if (filter?.columnId) {
       conditions.push(eq(tasks.columnId, filter.columnId));
     }

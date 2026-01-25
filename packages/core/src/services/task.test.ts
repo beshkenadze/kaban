@@ -113,6 +113,47 @@ describe("TaskService", () => {
       expect(tasks).toHaveLength(1);
       expect(tasks[0].title).toBe("Claude task");
     });
+
+    test("excludes archived tasks by default", async () => {
+      const task1 = await taskService.addTask({ title: "Active task" });
+      const task2 = await taskService.addTask({ title: "Archived task" });
+      await taskService.archiveTasks("default", { taskIds: [task2.id] });
+
+      const tasks = await taskService.listTasks();
+
+      expect(tasks).toHaveLength(1);
+      expect(tasks[0].id).toBe(task1.id);
+      expect(tasks[0].title).toBe("Active task");
+    });
+
+    test("includes archived tasks when includeArchived is true", async () => {
+      const task1 = await taskService.addTask({ title: "Active task" });
+      const task2 = await taskService.addTask({ title: "Archived task" });
+      await taskService.archiveTasks("default", { taskIds: [task2.id] });
+
+      const tasks = await taskService.listTasks({ includeArchived: true });
+
+      expect(tasks).toHaveLength(2);
+      const taskIds = tasks.map((t) => t.id);
+      expect(taskIds).toContain(task1.id);
+      expect(taskIds).toContain(task2.id);
+    });
+
+    test("other filters work with archive filter", async () => {
+      const task1 = await taskService.addTask({ title: "Active todo", columnId: "todo" });
+      const task2 = await taskService.addTask({ title: "Archived todo", columnId: "todo" });
+      const task3 = await taskService.addTask({ title: "Active backlog", columnId: "backlog" });
+      await taskService.archiveTasks("default", { taskIds: [task2.id] });
+
+      const todoTasks = await taskService.listTasks({ columnId: "todo" });
+
+      expect(todoTasks).toHaveLength(1);
+      expect(todoTasks[0].id).toBe(task1.id);
+
+      const allTodoTasks = await taskService.listTasks({ columnId: "todo", includeArchived: true });
+
+      expect(allTodoTasks).toHaveLength(2);
+    });
   });
 
   describe("deleteTask", () => {
