@@ -4,10 +4,10 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Command } from "commander";
+import pkg from "../../package.json" with { type: "json" };
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
-const pkg = require("../../package.json");
 
 function hasBun(): boolean {
   try {
