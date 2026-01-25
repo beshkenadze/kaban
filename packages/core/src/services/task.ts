@@ -17,6 +17,7 @@ export type UpdateTaskInput = UpdateTaskInputSchema;
 
 export interface MoveTaskOptions {
   force?: boolean;
+  validateDeps?: boolean;
 }
 
 export interface ArchiveTasksCriteria {
@@ -178,6 +179,16 @@ export class TaskService {
       if (count >= column.wipLimit) {
         throw new KabanError(
           `Column '${column.name}' at WIP limit (${count}/${column.wipLimit}). Move a task out first.`,
+          ExitCode.VALIDATION,
+        );
+      }
+    }
+
+    if (column.isTerminal && options?.validateDeps) {
+      const depResult = await this.validateDependencies(id);
+      if (!depResult.valid) {
+        throw new KabanError(
+          `Task '${id}' is blocked by incomplete dependencies: ${depResult.blockedBy.join(", ")}`,
           ExitCode.VALIDATION,
         );
       }

@@ -205,6 +205,62 @@ describe("TaskService", () => {
 
       expect(moved.completedAt).not.toBeNull();
     });
+
+    test("with validateDeps:true blocks move to terminal if dependencies incomplete", async () => {
+      const dep1 = await taskService.addTask({ title: "Incomplete dep", columnId: "todo" });
+      const dep2 = await taskService.addTask({ title: "In progress dep", columnId: "in_progress" });
+
+      const task = await taskService.addTask({
+        title: "Task with deps",
+        dependsOn: [dep1.id, dep2.id],
+      });
+
+      expect(taskService.moveTask(task.id, "done", { validateDeps: true })).rejects.toThrow(
+        /blocked by incomplete dependencies/,
+      );
+    });
+
+    test("with validateDeps:true allows move to terminal if dependencies complete", async () => {
+      const dep1 = await taskService.addTask({ title: "Completed dep 1" });
+      const dep2 = await taskService.addTask({ title: "Completed dep 2" });
+      await taskService.moveTask(dep1.id, "done");
+      await taskService.moveTask(dep2.id, "done");
+
+      const task = await taskService.addTask({
+        title: "Task with deps",
+        dependsOn: [dep1.id, dep2.id],
+      });
+
+      const moved = await taskService.moveTask(task.id, "done", { validateDeps: true });
+
+      expect(moved.columnId).toBe("done");
+    });
+
+    test("without validateDeps allows move regardless of dependencies", async () => {
+      const dep = await taskService.addTask({ title: "Incomplete dep", columnId: "todo" });
+
+      const task = await taskService.addTask({
+        title: "Task with deps",
+        dependsOn: [dep.id],
+      });
+
+      const moved = await taskService.moveTask(task.id, "done");
+
+      expect(moved.columnId).toBe("done");
+    });
+
+    test("with validateDeps:true allows move to non-terminal column regardless of dependencies", async () => {
+      const dep = await taskService.addTask({ title: "Incomplete dep", columnId: "todo" });
+
+      const task = await taskService.addTask({
+        title: "Task with deps",
+        dependsOn: [dep.id],
+      });
+
+      const moved = await taskService.moveTask(task.id, "in_progress", { validateDeps: true });
+
+      expect(moved.columnId).toBe("in_progress");
+    });
   });
 
   describe("optimistic locking", () => {
