@@ -22,3 +22,6 @@ coverage
 .env
 .env.local
 .env.*.local
+
+# Plans (local working docs)
+docs/plans/
