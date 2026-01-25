@@ -1,6 +1,6 @@
 {
   "name": "@kaban-board/tui",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Terminal User Interface for Kaban - Kanban for AI Agents",
   "type": "module",
   "bin": {

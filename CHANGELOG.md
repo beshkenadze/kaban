@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.9](https://github.com/beshkenadze/kaban/compare/v0.2.8...v0.2.9) (2026-01-25)
+
+
+### Bug Fixes
+
+* **core:** enable db driver switching and fix nodejs compatibility ([9c6ba93](https://github.com/beshkenadze/kaban/commit/9c6ba93e7788a77b5d6e328e9bcece5b1b1817fa))
+
 ## [0.2.8](https://github.com/beshkenadze/kaban/compare/v0.2.7...v0.2.8) (2026-01-25)
 
 
