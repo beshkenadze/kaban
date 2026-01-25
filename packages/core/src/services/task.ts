@@ -8,6 +8,7 @@ import type {
 } from "../schemas.js";
 import type { Task } from "../types.js";
 import { ExitCode, KabanError } from "../types.js";
+import { jaccardSimilarity } from "../utils/similarity.js";
 import { validateAgentName, validateColumnId, validateTitle } from "../validation.js";
 import type { BoardService } from "./board.js";
 
@@ -584,5 +585,21 @@ export class TaskService {
       valid: blockedBy.length === 0,
       blockedBy,
     };
+  }
+
+  async findSimilarTasks(
+    title: string,
+    threshold = 0.5,
+  ): Promise<Array<{ task: Task; similarity: number }>> {
+    const activeTasks = await this.listTasks({ includeArchived: false });
+
+    return activeTasks
+      .map((task) => ({
+        task,
+        similarity: jaccardSimilarity(title, task.title),
+      }))
+      .filter((result) => result.similarity >= threshold)
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, 5);
   }
 }

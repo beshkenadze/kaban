@@ -714,4 +714,48 @@ describe("TaskService", () => {
       );
     });
   });
+
+  describe("findSimilarTasks", () => {
+    test("finds similar tasks above threshold", async () => {
+      await taskService.addTask({ title: "Fix login bug" });
+      await taskService.addTask({ title: "Add feature" });
+
+      const similar = await taskService.findSimilarTasks("Fix login issue");
+
+      expect(similar.length).toBeGreaterThan(0);
+      expect(similar[0].task.title).toBe("Fix login bug");
+      expect(similar[0].similarity).toBeGreaterThanOrEqual(0.5);
+    });
+
+    test("does not return tasks below threshold", async () => {
+      await taskService.addTask({ title: "Implement authentication" });
+
+      const similar = await taskService.findSimilarTasks("Fix database bug", 0.6);
+
+      expect(similar).toHaveLength(0);
+    });
+
+    test("does not check archived tasks", async () => {
+      const task = await taskService.addTask({ title: "Fix login bug" });
+      await taskService.moveTask(task.id, "done");
+      await taskService.archiveTasks("default", { taskIds: [task.id] });
+
+      const similar = await taskService.findSimilarTasks("Fix login issue");
+
+      expect(similar).toHaveLength(0);
+    });
+
+    test("returns top 5 matches sorted by similarity", async () => {
+      for (let i = 0; i < 10; i++) {
+        await taskService.addTask({ title: `Fix bug number ${i}` });
+      }
+
+      const similar = await taskService.findSimilarTasks("Fix bug number");
+
+      expect(similar.length).toBeLessThanOrEqual(5);
+      for (let i = 1; i < similar.length; i++) {
+        expect(similar[i].similarity).toBeLessThanOrEqual(similar[i - 1].similarity);
+      }
+    });
+  });
 });
