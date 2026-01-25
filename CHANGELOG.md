@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.12](https://github.com/beshkenadze/kaban/compare/v0.2.11...v0.2.12) (2026-01-25)
+
+
+### Bug Fixes
+
+* **tui:** exclude @libsql/client from compiled binary ([3f71a6f](https://github.com/beshkenadze/kaban/commit/3f71a6f7de6806afb11387f66dcdcd156549b732))
+
 ## [0.2.11](https://github.com/beshkenadze/kaban/compare/v0.2.10...v0.2.11) (2026-01-25)
 
 
