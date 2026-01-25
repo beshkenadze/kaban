@@ -5,11 +5,13 @@ import { join } from "node:path";
 
 const TEST_DIR = "/tmp/kaban-hook-test";
 const CLI = join(import.meta.dir, "../../dist/index.js");
+const KABAN_CLI_ENV = { KABAN_CLI: `bun ${CLI}` };
 
 function runCli(cmd: string): string {
   return execSync(`bun ${CLI} ${cmd}`, {
     cwd: TEST_DIR,
     encoding: "utf-8",
+    env: { ...process.env, ...KABAN_CLI_ENV },
   });
 }
 
@@ -18,6 +20,7 @@ function runSync(input: object): { stdout: string; stderr: string; exitCode: num
     input: JSON.stringify(input),
     cwd: TEST_DIR,
     encoding: "utf-8",
+    env: { ...process.env, ...KABAN_CLI_ENV },
   });
   return {
     stdout: result.stdout || "",

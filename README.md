@@ -176,11 +176,16 @@ kaban <command> [options]
 |---------|-------------|
 | `kaban init` | Initialize a board |
 | `kaban add <title>` | Add a task |
-| `kaban list` | List tasks |
+| `kaban list` | List tasks (with filters) |
 | `kaban move <id> [column]` | Move a task (with optional `--assign`) |
 | `kaban assign <id> [agent]` | Assign/unassign a task |
 | `kaban done <id>` | Mark task complete |
 | `kaban status` | Show board summary |
+| `kaban search <query>` | Full-text search in archive |
+| `kaban archive` | Archive completed tasks |
+| `kaban restore <id>` | Restore task from archive |
+| `kaban purge` | Permanently delete archived tasks |
+| `kaban reset` | Delete ALL tasks (destructive) |
 | `kaban tui` | Launch interactive UI |
 | `kaban mcp` | Start MCP server |
 | `kaban hook install` | Install TodoWrite sync hook |
