@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.10](https://github.com/beshkenadze/kaban/compare/v0.2.9...v0.2.10) (2026-01-25)
+
+
+### Bug Fixes
+
+* **cli:** decouple TUI dependency to allow nodejs install without bun errors ([632ec04](https://github.com/beshkenadze/kaban/commit/632ec041cef3bd223094bf6507309b53172db8c8))
+
 ## [0.2.9](https://github.com/beshkenadze/kaban/compare/v0.2.8...v0.2.9) (2026-01-25)
 
 

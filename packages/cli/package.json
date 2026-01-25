@@ -1,6 +1,6 @@
 {
   "name": "@kaban-board/cli",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "Terminal Kanban for AI Code Agents - CLI and MCP server",
   "type": "module",
   "bin": {
