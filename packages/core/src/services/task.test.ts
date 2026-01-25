@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, rmSync } from "node:fs";
 import { createDb, type DB, initializeSchema } from "../db/index.js";
-import { migrateArchiveSupport } from "../db/migrate.js";
 import { TaskSchema } from "../schemas.js";
 import { DEFAULT_CONFIG, KabanError } from "../types.js";
 import { BoardService } from "./board.js";
@@ -17,9 +16,8 @@ describe("TaskService", () => {
 
   beforeEach(async () => {
     if (existsSync(TEST_DIR)) rmSync(TEST_DIR, { recursive: true });
-    db = await createDb(TEST_DB);
+    db = await createDb(TEST_DB); // migrations run automatically
     await initializeSchema(db);
-    await migrateArchiveSupport(db);
     boardService = new BoardService(db);
     taskService = new TaskService(db, boardService);
     await boardService.initializeBoard(DEFAULT_CONFIG);

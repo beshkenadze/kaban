@@ -155,13 +155,14 @@ describe("runtime detection", () => {
   });
 });
 
-describe("migrateArchiveSupport", () => {
+describe("runMigrations", () => {
   let db: DB;
 
   beforeEach(async () => {
     if (existsSync(TEST_DIR)) rmSync(TEST_DIR, { recursive: true });
-    db = await createDb(TEST_DB);
-    await initializeSchema(db);
+    // Create DB without running migrations to test them explicitly
+    // Don't call initializeSchema - migrations create the schema
+    db = await createDb(TEST_DB, { migrate: false });
   });
 
   afterEach(async () => {
@@ -169,21 +170,23 @@ describe("migrateArchiveSupport", () => {
     if (existsSync(TEST_DIR)) rmSync(TEST_DIR, { recursive: true });
   });
 
-  test("creates archived index on tasks table", async () => {
-    const { migrateArchiveSupport } = await import("./migrate.js");
-    await migrateArchiveSupport(db);
+  test("creates archived index and FTS table", async () => {
+    const { runMigrations } = await import("./migrator.js");
+    const result = await runMigrations(db);
 
-    // Verify index exists by checking sqlite_master
+    // Should have applied both migrations
+    expect(result.applied).toContain("0000_init");
+    expect(result.applied).toContain("0001_add_fts5");
+
+    // Verify we can query the DB
     await db.select().from(boards).limit(1);
-    // If we reach here without error, migration succeeded
-    expect(true).toBe(true);
   });
 
   test("creates FTS5 virtual table for tasks", async () => {
-    const { migrateArchiveSupport } = await import("./migrate.js");
-    await migrateArchiveSupport(db);
+    const { runMigrations } = await import("./migrator.js");
+    await runMigrations(db);
 
-    // FTS table should exist - insert a task and search
+    // FTS table should exist - insert a task and verify trigger works
     const now = Date.now();
     await db.$runRaw(`
       INSERT INTO boards (id, name, created_at, updated_at)
@@ -195,24 +198,25 @@ describe("migrateArchiveSupport", () => {
     `);
 
     // FTS trigger should have populated the FTS table
-    // Search should work if FTS is set up correctly
     expect(true).toBe(true);
   });
 
   test("is idempotent - safe to run multiple times", async () => {
-    const { migrateArchiveSupport } = await import("./migrate.js");
+    const { runMigrations } = await import("./migrator.js");
 
-    await migrateArchiveSupport(db);
-    await migrateArchiveSupport(db);
-    await migrateArchiveSupport(db);
+    const result1 = await runMigrations(db);
+    const result2 = await runMigrations(db);
+    const result3 = await runMigrations(db);
 
-    // If we reach here without error, migration is idempotent
-    expect(true).toBe(true);
+    // First run applies all, subsequent runs apply none
+    expect(result1.applied.length).toBeGreaterThan(0);
+    expect(result2.applied.length).toBe(0);
+    expect(result3.applied.length).toBe(0);
   });
 
   test("FTS triggers keep search index in sync", async () => {
-    const { migrateArchiveSupport } = await import("./migrate.js");
-    await migrateArchiveSupport(db);
+    const { runMigrations } = await import("./migrator.js");
+    await runMigrations(db);
 
     const now = Date.now();
     await db.$runRaw(`
@@ -242,24 +246,25 @@ describe("migrateArchiveSupport", () => {
     expect(true).toBe(true);
   });
 
-  test("populates FTS with existing data on first migration", async () => {
+  test("FTS triggers populate index on insert", async () => {
+    const { runMigrations } = await import("./migrator.js");
+    await runMigrations(db);
+
     const now = Date.now();
 
-    // Insert task BEFORE running migration
+    // Insert data after migrations - triggers should populate FTS
     await db.$runRaw(`
       INSERT INTO boards (id, name, created_at, updated_at)
       VALUES ('board-1', 'Test Board', ${now}, ${now});
       INSERT INTO columns (id, board_id, name, position, is_terminal)
       VALUES ('col-1', 'board-1', 'Todo', 0, 0);
       INSERT INTO tasks (id, title, description, column_id, position, created_by, created_at, updated_at)
-      VALUES ('task-1', 'Existing Task', 'Existing description', 'col-1', 0, 'user', ${now}, ${now});
+      VALUES ('task-1', 'Searchable Title', 'Searchable description', 'col-1', 0, 'user', ${now}, ${now});
     `);
 
-    // Now run migration - it should populate FTS with existing data
-    const { migrateArchiveSupport } = await import("./migrate.js");
-    await migrateArchiveSupport(db);
-
-    // If we reach here without error, FTS population succeeded
-    expect(true).toBe(true);
+    // Verify FTS was populated by the trigger - search should find the task
+    const client = db.$client as { prepare: (sql: string) => { all: () => unknown[] } };
+    const results = client.prepare("SELECT * FROM tasks_fts WHERE tasks_fts MATCH 'Searchable'").all();
+    expect(results.length).toBe(1);
   });
 });

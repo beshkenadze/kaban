@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, isAbsolute, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { DB } from "./index.js";
 
 interface MigrationEntry {
@@ -19,7 +22,7 @@ interface Migration {
   sql: string;
 }
 
-// Import generated migrations - these get bundled
+// Import generated migrations - these get bundled as text (or paths in dev)
 import journal from "../../drizzle/meta/_journal.json";
 import sql0000 from "../../drizzle/0000_init.sql";
 import sql0001 from "../../drizzle/0001_add_fts5.sql";
@@ -29,11 +32,32 @@ const migrationSql: Record<string, string> = {
   "0001_add_fts5": sql0001,
 };
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const drizzleDir = join(__dirname, "..", "..", "drizzle");
+
+function resolveSqlContent(sqlOrPath: string): string {
+  // If it's a SQL statement (bundled), return as-is
+  if (sqlOrPath.includes("CREATE") || sqlOrPath.includes("INSERT") || sqlOrPath.includes("--")) {
+    return sqlOrPath;
+  }
+
+  // Otherwise it's a file path (dev mode) - read the file
+  let filePath = sqlOrPath;
+  if (filePath.startsWith("./")) {
+    filePath = join(drizzleDir, filePath.replace("./", "").replace(/-[a-z0-9]+\.sql$/, ".sql"));
+  }
+  if (!isAbsolute(filePath)) {
+    filePath = join(drizzleDir, filePath);
+  }
+
+  return readFileSync(filePath, "utf-8");
+}
+
 function getMigrations(): Migration[] {
   const j = journal as MigrationJournal;
   return j.entries.map((entry) => ({
     tag: entry.tag,
-    sql: migrationSql[entry.tag] ?? "",
+    sql: resolveSqlContent(migrationSql[entry.tag] ?? ""),
   }));
 }
 
