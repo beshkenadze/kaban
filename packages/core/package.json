@@ -1,6 +1,6 @@
 {
   "name": "@kaban-board/core",
-  "version": "0.2.17",
+  "version": "0.2.18",
   "description": "Core database and services for Kaban - Terminal Kanban for AI Agents",
   "type": "module",
   "main": "./dist/index.js",
