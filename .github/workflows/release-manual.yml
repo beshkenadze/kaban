@@ -103,6 +103,6 @@ jobs:
           commit-message: |
             kaban ${{ inputs.version }}
             
-            Automated update from https://github.com/beshkenadze/kaban
+            Automated update from https://github.com/kaban-board/kaban
         env:
           COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
