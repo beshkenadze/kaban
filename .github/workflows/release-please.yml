@@ -87,7 +87,7 @@ jobs:
         with:
           formula-name: kaban
           formula-path: Formula/kaban.rb
-          homebrew-tap: beshkenadze/homebrew-tap
+          homebrew-tap: kaban-board/homebrew-tap
           tag-name: ${{ needs.release-please.outputs.tag_name }}
           download-url: https://registry.npmjs.org/@kaban-board/cli/-/cli-${{ needs.release-please.outputs.version }}.tgz
           commit-message: |
