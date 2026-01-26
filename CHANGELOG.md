@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.13](https://github.com/beshkenadze/kaban/compare/v0.2.12...v0.2.13) (2026-01-26)
+
+
+### Bug Fixes
+
+* **core:** fully isolate bun adapter in separate entry point for TUI ([7f5ce38](https://github.com/beshkenadze/kaban/commit/7f5ce38216400d8b8f804d59f239e4bb39c00b3e))
+* **core:** implement build-time exclusion of LibSQL for TUI binary ([1071ba1](https://github.com/beshkenadze/kaban/commit/1071ba1398ebb131f5c80c3e7acf19485f7d5eb1))
+
 ## [0.2.12](https://github.com/beshkenadze/kaban/compare/v0.2.11...v0.2.12) (2026-01-25)
 
 
