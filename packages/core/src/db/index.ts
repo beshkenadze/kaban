@@ -1,37 +1,10 @@
 import { ExitCode, KabanError } from "../types.js";
+import type { CreateDbOptions, DB, DbConfig } from "./types.js";
 import { fileUrlToPath } from "./utils.js";
 
 export * from "./schema.js";
 export { runMigrations } from "./migrator.js";
-
-type DrizzleDb = ReturnType<typeof import("drizzle-orm/libsql").drizzle>;
-
-type BunDatabase = InstanceType<typeof import("bun:sqlite").Database>;
-type LibsqlClient = import("@libsql/client").Client;
-
-/**
- * Database adapter interface.
- * Supports both bun:sqlite and @libsql/client backends.
- * Note: Uses libsql drizzle type for compatibility; bun:sqlite is API-compatible at runtime.
- */
-export type DB = Omit<DrizzleDb, "$client"> & {
-  $client: BunDatabase | LibsqlClient;
-  /**
-   * Execute raw SQL statements.
-   * @internal For schema initialization only. Does not sanitize input.
-   */
-  $runRaw: (sql: string) => Promise<void>;
-  $close: () => Promise<void>;
-};
-
-export interface DbConfig {
-  url: string;
-  authToken?: string;
-}
-
-export interface CreateDbOptions {
-  migrate?: boolean;
-}
+export type { CreateDbOptions, DB, DbConfig } from "./types.js";
 
 const isBun = typeof globalThis.Bun !== "undefined" && typeof globalThis.Bun.version === "string";
 

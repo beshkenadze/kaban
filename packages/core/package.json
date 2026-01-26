@@ -9,6 +9,10 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./bun": {
+      "import": "./dist/index-bun.js",
+      "types": "./dist/index-bun.d.ts"
     }
   },
   "files": [

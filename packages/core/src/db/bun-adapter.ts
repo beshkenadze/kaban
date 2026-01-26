@@ -1,7 +1,7 @@
 import { ExitCode, KabanError } from "../types.js";
 import * as schema from "./schema.js";
 import { ensureDbDir } from "./utils.js";
-import type { DB } from "./index.js";
+import type { DB } from "./types.js";
 
 export async function createBunDb(filePath: string): Promise<DB> {
   let sqlite: InstanceType<typeof import("bun:sqlite").Database> | undefined;

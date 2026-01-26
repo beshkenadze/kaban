@@ -1,6 +1,7 @@
 import { and, eq, inArray, lt, sql } from "drizzle-orm";
 import { ulid } from "ulid";
-import { type DB, tasks } from "../db/index.js";
+import { tasks } from "../db/schema.js";
+import type { DB } from "../db/types.js";
 import type {
   AddTaskInput as AddTaskInputSchema,
   ListTasksFilter as ListTasksFilterSchema,

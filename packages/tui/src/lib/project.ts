@@ -6,7 +6,7 @@ import {
   createDb,
   DEFAULT_CONFIG,
   initializeSchema,
-} from "@kaban-board/core";
+} from "@kaban-board/core/bun";
 
 export function findKabanRoot(startDir: string): string | null {
   let dir = startDir;

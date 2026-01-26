@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { BoardService, createDb, TaskService } from "@kaban-board/core";
+import { BoardService, createDb, TaskService } from "@kaban-board/core/bun";
 import { createCliRenderer } from "@opentui/core";
 import type { EventEmitter } from "events";
 import { refreshBoard } from "./components/board.js";

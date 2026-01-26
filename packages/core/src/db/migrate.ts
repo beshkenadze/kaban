@@ -1,4 +1,4 @@
-import type { DB } from "./index.js";
+import type { DB } from "./types.js";
 
 interface TableInfo {
   name: string;

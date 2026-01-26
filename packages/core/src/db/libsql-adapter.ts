@@ -1,7 +1,7 @@
 import { ExitCode, KabanError } from "../types.js";
 import * as schema from "./schema.js";
 import { ensureDbDir, fileUrlToPath } from "./utils.js";
-import type { DB, DbConfig } from "./index.js";
+import type { DB, DbConfig } from "./types.js";
 
 export async function createLibsqlDb(config: DbConfig): Promise<DB> {
   let client: ReturnType<typeof import("@libsql/client").createClient> | undefined;

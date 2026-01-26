@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, isAbsolute, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { DB } from "./index.js";
+import type { DB } from "./types.js";
 
 interface MigrationEntry {
   idx: number;

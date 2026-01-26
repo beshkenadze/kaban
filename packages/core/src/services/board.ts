@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { ulid } from "ulid";
-import { boards, columns, type DB } from "../db/index.js";
+import { boards, columns } from "../db/schema.js";
+import type { DB } from "../db/types.js";
 import type { Board, Column, Config } from "../types.js";
 
 export class BoardService {
