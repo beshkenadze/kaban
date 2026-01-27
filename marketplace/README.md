@@ -24,8 +24,10 @@ Or for local development:
 
 **Install:**
 ```bash
-/plugin install kaban-workflow@kaban-marketplace
+bunx skills add beshkenadze/kaban
 ```
+
+Works with all AI code editors: Antigravity, Claude Code, Clawdbot, Cline, Codex, and 21+ more.
 
 **What you get:**
 - SessionStart hook that checks board status and in-progress tasks

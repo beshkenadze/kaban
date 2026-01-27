@@ -307,10 +307,10 @@ Add Kaban MCP server to your AI coding assistant:
 Install the Kaban workflow skill for TodoWrite sync and session persistence:
 
 ```bash
-npx add-skill beshkenadze/kaban
-# or
-bunx add-skill beshkenadze/kaban
+bunx skills add beshkenadze/kaban
 ```
+
+Works with all AI code editors: Antigravity, Claude Code, Clawdbot, Cline, Codex, and 21+ more.
 
 The skill includes:
 - **MCP server** — Auto-configured, no manual setup needed
