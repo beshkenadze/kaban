@@ -5,7 +5,9 @@ import { addCommand } from "./commands/add.js";
 import { archiveCommand, purgeCommand, resetCommand, restoreCommand } from "./commands/archive.js";
 import { assignCommand } from "./commands/assign.js";
 import { doneCommand } from "./commands/done.js";
+import { exportCommand } from "./commands/export.js";
 import { hookCommand } from "./commands/hook.js";
+import { importCommand } from "./commands/import.js";
 import { initCommand } from "./commands/init.js";
 import { listCommand } from "./commands/list.js";
 import { mcpCommand } from "./commands/mcp.js";
@@ -40,5 +42,7 @@ program.addCommand(archiveCommand);
 program.addCommand(restoreCommand);
 program.addCommand(purgeCommand);
 program.addCommand(resetCommand);
+program.addCommand(exportCommand);
+program.addCommand(importCommand);
 
 program.parse();
