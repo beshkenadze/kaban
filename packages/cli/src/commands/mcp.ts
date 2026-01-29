@@ -169,32 +169,44 @@ async function startMcpServer(workingDirectory: string) {
           },
         },
       },
-      {
-        name: "kaban_update_task",
-        description: "Update a task's properties",
-        inputSchema: {
-          type: "object",
-          properties: {
-            id: { type: "string", description: "Task ID (ULID)" },
-            taskId: { type: "string", description: "Task ID (ULID) - alias for 'id'" },
-            title: { type: "string", description: "New task title" },
-            description: { type: ["string", "null"], description: "New task description" },
-            assignedTo: { type: ["string", "null"], description: "Assigned agent name" },
-            files: {
-              type: "array",
-              items: { type: "string" },
-              description: "Associated file paths",
-            },
-            labels: { type: "array", items: { type: "string" }, description: "Task labels" },
-            expectedVersion: {
-              type: "number",
-              description: "Expected version for optimistic locking",
-            },
-          },
-        },
-      },
-      {
-        name: "kaban_delete_task",
+       {
+         name: "kaban_update_task",
+         description: "Update a task's properties",
+         inputSchema: {
+           type: "object",
+           properties: {
+             id: { type: "string", description: "Task ID (ULID)" },
+             taskId: { type: "string", description: "Task ID (ULID) - alias for 'id'" },
+             title: { type: "string", description: "New task title" },
+             description: { type: ["string", "null"], description: "New task description" },
+             assignedTo: { type: ["string", "null"], description: "Assigned agent name" },
+             files: {
+               type: "array",
+               items: { type: "string" },
+               description: "Associated file paths",
+             },
+             labels: { type: "array", items: { type: "string" }, description: "Task labels" },
+             expectedVersion: {
+               type: "number",
+               description: "Expected version for optimistic locking",
+             },
+           },
+         },
+       },
+       {
+         name: "kaban_assign_task",
+         description: "Assign or unassign a task to/from an agent (convenience wrapper for kaban_update_task)",
+         inputSchema: {
+           type: "object",
+           properties: {
+             id: { type: "string", description: "Task ID (ULID)" },
+             taskId: { type: "string", description: "Task ID - alias for 'id'" },
+             assignee: { type: ["string", "null"], description: "Agent name (null to unassign)" },
+           },
+         },
+       },
+       {
+         name: "kaban_delete_task",
         description: "Delete a task",
         inputSchema: {
           type: "object",
@@ -523,23 +535,30 @@ async function startMcpServer(workingDirectory: string) {
           const task = await taskService.moveTask(taskId, targetColumn, { force });
           return jsonResponse(task);
         }
-        case "kaban_update_task": {
-          if (!taskId) return errorResponse("Task ID required (use 'id' or 'taskId')");
-          const {
-            taskId: _t,
-            id: _i,
-            expectedVersion,
-            ...updates
-          } = (args ?? {}) as {
-            id?: string;
-            taskId?: string;
-            expectedVersion?: number;
-            [key: string]: unknown;
-          };
-          const task = await taskService.updateTask(taskId, updates, expectedVersion);
-          return jsonResponse(task);
-        }
-        case "kaban_delete_task": {
+         case "kaban_update_task": {
+           if (!taskId) return errorResponse("Task ID required (use 'id' or 'taskId')");
+           const {
+             taskId: _t,
+             id: _i,
+             expectedVersion,
+             ...updates
+           } = (args ?? {}) as {
+             id?: string;
+             taskId?: string;
+             expectedVersion?: number;
+             [key: string]: unknown;
+           };
+           const task = await taskService.updateTask(taskId, updates, expectedVersion);
+           return jsonResponse(task);
+         }
+         case "kaban_assign_task": {
+           const id = getParam(taskArgs, "id", "taskId");
+           if (!id) return errorResponse("Task ID required (use 'id' or 'taskId')");
+           const { assignee } = (args ?? {}) as { assignee?: string | null };
+           const task = await taskService.updateTask(id, { assignedTo: assignee ?? null });
+           return jsonResponse(task);
+         }
+         case "kaban_delete_task": {
           if (!taskId) return errorResponse("Task ID required (use 'id' or 'taskId')");
           await taskService.deleteTask(taskId);
           return jsonResponse({ success: true });
