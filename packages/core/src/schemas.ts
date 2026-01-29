@@ -30,6 +30,7 @@ export const ColumnIdSchema = z
 
 export const TaskSchema = z.object({
   id: UlidSchema,
+  boardTaskId: z.number().int().positive().nullable(),
   title: z.string(),
   description: z.string().nullable(),
   columnId: z.string(),
@@ -46,9 +47,42 @@ export const TaskSchema = z.object({
   updatedAt: z.date(),
   startedAt: z.date().nullable(),
   completedAt: z.date().nullable(),
+  dueDate: z.date().nullable(),
   archived: z.boolean().default(false),
   archivedAt: z.date().nullable().optional(),
+  updatedBy: z.string().nullable(),
 });
+
+export function formatTaskId(task: { boardTaskId: number | null; id: string }): string {
+  return task.boardTaskId ? `#${task.boardTaskId}` : task.id;
+}
+
+export const AuditSchema = z.object({
+  id: z.number().int().positive(),
+  timestamp: z.date(),
+  eventType: z.enum(["CREATE", "UPDATE", "DELETE"]),
+  objectType: z.enum(["task", "column", "board"]),
+  objectId: z.string(),
+  fieldName: z.string().nullable(),
+  oldValue: z.string().nullable(),
+  newValue: z.string().nullable(),
+  actor: z.string().nullable(),
+});
+
+export type Audit = z.infer<typeof AuditSchema>;
+
+export const LinkTypeSchema = z.enum(["blocks", "blocked_by", "related"]);
+export type LinkType = z.infer<typeof LinkTypeSchema>;
+
+export const TaskLinkSchema = z.object({
+  id: z.number().int().positive(),
+  fromTaskId: UlidSchema,
+  toTaskId: UlidSchema,
+  linkType: LinkTypeSchema,
+  createdAt: z.date(),
+});
+
+export type TaskLink = z.infer<typeof TaskLinkSchema>;
 
 export const ColumnSchema = z.object({
   id: z.string(),
@@ -61,6 +95,7 @@ export const ColumnSchema = z.object({
 export const BoardSchema = z.object({
   id: UlidSchema,
   name: z.string(),
+  maxBoardTaskId: z.number().int().nonnegative(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -101,6 +136,7 @@ export const AddTaskInputSchema = z.object({
   dependsOn: z.array(UlidSchema).optional(),
   files: z.array(z.string()).optional(),
   labels: z.array(z.string().max(50)).optional(),
+  dueDate: z.string().optional(),
 });
 
 export const UpdateTaskInputSchema = z.object({
@@ -109,6 +145,7 @@ export const UpdateTaskInputSchema = z.object({
   assignedTo: AgentNameSchema.nullable().optional(),
   files: z.array(z.string()).optional(),
   labels: z.array(z.string().max(50)).optional(),
+  dueDate: z.string().nullable().optional(),
 });
 
 export const MoveTaskInputSchema = z.object({
@@ -140,6 +177,7 @@ export const TaskResponseSchema = TaskSchema.extend({
   updatedAt: z.string().datetime(),
   startedAt: z.string().datetime().nullable(),
   completedAt: z.string().datetime().nullable(),
+  dueDate: z.string().datetime().nullable(),
   archivedAt: z.string().datetime().nullable().optional(),
 });
 
@@ -186,6 +224,7 @@ const AddTaskInputJsonSchema = z.object({
   dependsOn: z.array(UlidSchema).optional(),
   files: z.array(z.string()).optional(),
   labels: z.array(z.string().max(50)).optional(),
+  dueDate: z.string().optional(),
 });
 
 const UpdateTaskInputJsonSchema = z.object({
@@ -194,6 +233,7 @@ const UpdateTaskInputJsonSchema = z.object({
   assignedTo: AgentNameBaseSchema.nullable().optional(),
   files: z.array(z.string()).optional(),
   labels: z.array(z.string().max(50)).optional(),
+  dueDate: z.string().nullable().optional(),
 });
 
 const ListTasksFilterJsonSchema = z.object({

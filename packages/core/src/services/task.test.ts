@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { and, eq } from "drizzle-orm";
 import { existsSync, rmSync } from "node:fs";
 import { createDb, type DB, initializeSchema } from "../db/index.js";
+import { audits } from "../db/schema.js";
 import { TaskSchema } from "../schemas.js";
 import { DEFAULT_CONFIG, KabanError } from "../types.js";
 import { BoardService } from "./board.js";
@@ -869,6 +871,116 @@ describe("TaskService", () => {
       expect(stats.totalArchived).toBe(2);
       expect(stats.byColumn.done).toBe(2);
       expect(stats.oldestArchivedAt).not.toBeNull();
+    });
+  });
+
+  describe("Board-scoped IDs", () => {
+    describe("ID generation", () => {
+      test("auto-increments boardTaskId per board", async () => {
+        const task1 = await taskService.addTask({ title: "First" });
+        const task2 = await taskService.addTask({ title: "Second" });
+
+        expect(task1.boardTaskId).toBe(1);
+        expect(task2.boardTaskId).toBe(2);
+      });
+
+      test("IDs are never reused after deletion", async () => {
+        const task1 = await taskService.addTask({ title: "Task 1" });
+        const task2 = await taskService.addTask({ title: "Task 2" });
+        await taskService.deleteTask(task2.id);
+        const task3 = await taskService.addTask({ title: "Task 3" });
+
+        expect(task1.boardTaskId).toBe(1);
+        expect(task3.boardTaskId).toBe(3);
+      });
+    });
+
+    describe("ID resolution", () => {
+      test("resolves task by short ID", async () => {
+        const created = await taskService.addTask({ title: "Test" });
+        const resolved = await taskService.resolveTask("1");
+        expect(resolved?.id).toBe(created.id);
+      });
+
+      test("resolves task by #prefix", async () => {
+        const created = await taskService.addTask({ title: "Test" });
+        const resolved = await taskService.resolveTask("#1");
+        expect(resolved?.id).toBe(created.id);
+      });
+
+      test("resolves task by ULID", async () => {
+        const created = await taskService.addTask({ title: "Test" });
+        const resolved = await taskService.resolveTask(created.id);
+        expect(resolved?.boardTaskId).toBe(created.boardTaskId);
+      });
+
+      test("resolves task by partial ULID", async () => {
+        const created = await taskService.addTask({ title: "Test" });
+        const prefix = created.id.slice(0, 8);
+        const resolved = await taskService.resolveTask(prefix);
+        expect(resolved?.id).toBe(created.id);
+      });
+
+      test("returns null for non-existent short ID", async () => {
+        await taskService.addTask({ title: "Test" });
+        const resolved = await taskService.resolveTask("999");
+        expect(resolved).toBeNull();
+      });
+    });
+  });
+
+  describe("Audit Log", () => {
+    test("logs task creation", async () => {
+      const task = await taskService.addTask({ title: "Test Task", createdBy: "testuser" });
+
+      const auditRows = await db.select().from(audits).where(eq(audits.objectId, task.id));
+
+      expect(auditRows).toHaveLength(1);
+      expect(auditRows[0].eventType).toBe("CREATE");
+      expect(auditRows[0].objectType).toBe("task");
+      expect(auditRows[0].actor).toBe("testuser");
+    });
+
+    test("logs task title update with actor", async () => {
+      const task = await taskService.addTask({ title: "Original" });
+      await taskService.updateTask(task.id, { title: "Updated" }, undefined, "agent-x");
+
+      const auditRows = await db
+        .select()
+        .from(audits)
+        .where(and(eq(audits.objectId, task.id), eq(audits.fieldName, "title")));
+
+      expect(auditRows).toHaveLength(1);
+      expect(auditRows[0].oldValue).toBe("Original");
+      expect(auditRows[0].newValue).toBe("Updated");
+      expect(auditRows[0].actor).toBe("agent-x");
+    });
+
+    test("logs task column change on move", async () => {
+      const task = await taskService.addTask({ title: "Test" });
+      await taskService.moveTask(task.id, "in_progress", { actor: "user" });
+
+      const auditRows = await db
+        .select()
+        .from(audits)
+        .where(and(eq(audits.objectId, task.id), eq(audits.fieldName, "columnId")));
+
+      expect(auditRows).toHaveLength(1);
+      expect(auditRows[0].oldValue).toBe("todo");
+      expect(auditRows[0].newValue).toBe("in_progress");
+    });
+
+    test("logs task deletion", async () => {
+      const task = await taskService.addTask({ title: "To Delete" });
+      const taskId = task.id;
+      await taskService.deleteTask(taskId);
+
+      const auditRows = await db
+        .select()
+        .from(audits)
+        .where(and(eq(audits.objectId, taskId), eq(audits.eventType, "DELETE")));
+
+      expect(auditRows).toHaveLength(1);
     });
   });
 });

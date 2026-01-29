@@ -28,12 +28,20 @@ import sql0000 from "../../drizzle/0000_init.sql";
 import sql0001 from "../../drizzle/0001_add_archived.sql";
 import sql0002 from "../../drizzle/0002_add_fts5.sql";
 import sql0003 from "../../drizzle/0003_fix_fts_compatibility.sql";
+import sql0004 from "../../drizzle/0004_board_scoped_ids.sql";
+import sql0005 from "../../drizzle/0005_audit_log.sql";
+import sql0006 from "../../drizzle/0006_due_date.sql";
+import sql0007 from "../../drizzle/0007_task_links.sql";
 
 const migrationSql: Record<string, string> = {
   "0000_init": sql0000,
   "0001_add_archived": sql0001,
   "0002_add_fts5": sql0002,
   "0003_fix_fts_compatibility": sql0003,
+  "0004_board_scoped_ids": sql0004,
+  "0005_audit_log": sql0005,
+  "0006_due_date": sql0006,
+  "0007_task_links": sql0007,
 };
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

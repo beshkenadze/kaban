@@ -29,6 +29,34 @@
       "when": 1769695200000,
       "tag": "0003_fix_fts_compatibility",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1769700000000,
+      "tag": "0004_board_scoped_ids",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1769800000000,
+      "tag": "0005_audit_log",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1769900000000,
+      "tag": "0006_due_date",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1770000000000,
+      "tag": "0007_task_links",
+      "breakpoints": true
     }
   ]
 }

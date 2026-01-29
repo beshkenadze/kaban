@@ -33,6 +33,7 @@ export class BoardService {
     return {
       id: boardId,
       name: config.board.name,
+      maxBoardTaskId: 0,
       createdAt: now,
       updatedAt: now,
     };

@@ -1,6 +1,6 @@
 import { and, eq, inArray, lt, sql } from "drizzle-orm";
 import { ulid } from "ulid";
-import { tasks } from "../db/schema.js";
+import { columns, tasks } from "../db/schema.js";
 import type { DB } from "../db/types.js";
 import type {
   AddTaskInput as AddTaskInputSchema,
@@ -9,9 +9,11 @@ import type {
 } from "../schemas.js";
 import type { Task } from "../types.js";
 import { ExitCode, KabanError } from "../types.js";
+import { parseDateOrNull } from "../utils/date-parser.js";
 import { jaccardSimilarity } from "../utils/similarity.js";
 import { validateAgentName, validateColumnId, validateTitle } from "../validation.js";
 import type { BoardService } from "./board.js";
+import { DependencyService } from "./dependency.js";
 
 export type AddTaskInput = AddTaskInputSchema;
 export type ListTasksFilter = ListTasksFilterSchema;
@@ -20,6 +22,7 @@ export type UpdateTaskInput = UpdateTaskInputSchema;
 export interface MoveTaskOptions {
   force?: boolean;
   validateDeps?: boolean;
+  actor?: string;
 }
 
 export interface ArchiveTasksCriteria {
@@ -74,11 +77,14 @@ export class TaskService {
     threshold: 0.5,
     warnThreshold: 0.5,
   };
+  private depService: DependencyService;
 
   constructor(
     private db: DB,
     private boardService: BoardService,
-  ) {}
+  ) {
+    this.depService = new DependencyService(this.getTask.bind(this));
+  }
 
   private async getTaskOrThrow(id: string): Promise<Task> {
     const task = await this.getTask(id);
@@ -90,17 +96,22 @@ export class TaskService {
 
   async addTask(input: AddTaskInput): Promise<Task> {
     const title = validateTitle(input.title);
-    // Priority: createdBy > agent > "user"
     const createdBy = input.createdBy
       ? validateAgentName(input.createdBy)
       : input.agent
         ? validateAgentName(input.agent)
         : "user";
     const columnId = input.columnId ? validateColumnId(input.columnId) : "todo";
+    const dueDate = parseDateOrNull(input.dueDate);
 
     const column = await this.boardService.getColumn(columnId);
     if (!column) {
       throw new KabanError(`Column '${columnId}' does not exist`, ExitCode.VALIDATION);
+    }
+
+    const board = await this.boardService.getBoard();
+    if (!board) {
+      throw new KabanError("No board found", ExitCode.NOT_FOUND);
     }
 
     const now = new Date();
@@ -113,27 +124,42 @@ export class TaskService {
 
     const position = (maxPositionResult[0]?.max ?? -1) + 1;
 
-    await this.db.insert(tasks).values({
-      id,
-      title,
-      description: input.description ?? null,
-      columnId,
-      position,
-      createdBy,
-      assignedTo: null,
-      parentId: null,
-      dependsOn: input.dependsOn ?? [],
-      files: input.files ?? [],
-      labels: input.labels ?? [],
-      blockedReason: null,
-      version: 1,
-      createdAt: now,
-      updatedAt: now,
-      startedAt: null,
-      completedAt: null,
-      archived: false,
-      archivedAt: null,
-    });
+    await this.db.run(sql`
+      UPDATE boards 
+      SET max_board_task_id = max_board_task_id + 1 
+      WHERE id = ${board.id}
+    `);
+
+    await this.db.run(sql`
+      INSERT INTO tasks (
+        id, board_task_id, title, description, column_id, position,
+        created_by, assigned_to, parent_id, depends_on, files, labels,
+        blocked_reason, version, created_at, updated_at, started_at,
+        completed_at, due_date, archived, archived_at
+      ) VALUES (
+        ${id},
+        (SELECT max_board_task_id FROM boards WHERE id = ${board.id}),
+        ${title},
+        ${input.description ?? null},
+        ${columnId},
+        ${position},
+        ${createdBy},
+        ${null},
+        ${null},
+        ${JSON.stringify(input.dependsOn ?? [])},
+        ${JSON.stringify(input.files ?? [])},
+        ${JSON.stringify(input.labels ?? [])},
+        ${null},
+        ${1},
+        ${now.getTime()},
+        ${now.getTime()},
+        ${null},
+        ${null},
+        ${dueDate?.getTime() ?? null},
+        ${0},
+        ${null}
+      )
+    `);
 
     return this.getTaskOrThrow(id);
   }
@@ -235,13 +261,14 @@ export class TaskService {
         updatedAt: now,
         completedAt: isTerminal ? now : task.completedAt,
         startedAt: columnId === "in_progress" && !task.startedAt ? now : task.startedAt,
+        updatedBy: options?.actor ?? null,
       })
       .where(eq(tasks.id, id));
 
     return this.getTaskOrThrow(id);
   }
 
-  async updateTask(id: string, input: UpdateTaskInput, expectedVersion?: number): Promise<Task> {
+  async updateTask(id: string, input: UpdateTaskInput, expectedVersion?: number, actor?: string): Promise<Task> {
     const task = await this.getTask(id);
     if (!task) {
       throw new KabanError(`Task '${id}' not found`, ExitCode.NOT_FOUND);
@@ -257,6 +284,7 @@ export class TaskService {
     const updates: Record<string, unknown> = {
       version: task.version + 1,
       updatedAt: new Date(),
+      updatedBy: actor ?? null,
     };
 
     if (input.title !== undefined) {
@@ -273,6 +301,9 @@ export class TaskService {
     }
     if (input.labels !== undefined) {
       updates.labels = input.labels;
+    }
+    if (input.dueDate !== undefined) {
+      updates.dueDate = input.dueDate ? parseDateOrNull(input.dueDate) : null;
     }
 
     await this.db
@@ -415,6 +446,7 @@ export class TaskService {
 
     type TaskRow = {
       id: string;
+      board_task_id: number | null;
       title: string;
       description: string | null;
       column_id: string;
@@ -433,6 +465,7 @@ export class TaskService {
       completed_at: number | null;
       archived: number;
       archived_at: number | null;
+      updated_by: string | null;
     };
 
     interface BunSqliteClient {
@@ -468,6 +501,7 @@ export class TaskService {
 
     const searchTasks: Task[] = rows.map((row) => ({
       id: row.id,
+      boardTaskId: row.board_task_id,
       title: row.title,
       description: row.description,
       columnId: row.column_id,
@@ -486,6 +520,7 @@ export class TaskService {
       completedAt: row.completed_at ? new Date(row.completed_at) : null,
       archived: Boolean(row.archived),
       archivedAt: row.archived_at ? new Date(row.archived_at) : null,
+      updatedBy: row.updated_by,
     }));
 
     return { tasks: searchTasks, total };
@@ -536,6 +571,15 @@ export class TaskService {
 
     if (task.dependsOn.includes(dependsOnId)) {
       return task;
+    }
+
+    const cycleCheck = await this.depService.wouldCreateCycle(taskId, dependsOnId);
+    if (cycleCheck.hasCycle && cycleCheck.cyclePath) {
+      const cyclePath = this.depService.formatCyclePath(cycleCheck.cyclePath);
+      throw new KabanError(
+        `Cannot add dependency - would create cycle: ${cyclePath}`,
+        ExitCode.VALIDATION,
+      );
     }
 
     const updatedDependsOn = [...task.dependsOn, dependsOnId];
@@ -676,5 +720,55 @@ export class TaskService {
       byColumn,
       oldestArchivedAt,
     };
+  }
+
+  async resolveTask(idOrShortId: string, boardId?: string): Promise<Task | null> {
+    const cleanId = idOrShortId.replace(/^#/, "").trim();
+
+    if (/^\d+$/.test(cleanId)) {
+      const shortId = parseInt(cleanId, 10);
+      const board = boardId ? { id: boardId } : await this.boardService.getBoard();
+      if (board) {
+        return this.getTaskByBoardTaskId(board.id, shortId);
+      }
+      return null;
+    }
+
+    if (/^[0-9A-Z]{26}$/i.test(cleanId)) {
+      return this.getTask(cleanId);
+    }
+
+    if (cleanId.length >= 4 && /^[0-9A-Z]+$/i.test(cleanId)) {
+      return this.getTaskByIdPrefix(cleanId);
+    }
+
+    return null;
+  }
+
+  async getTaskByBoardTaskId(boardId: string, boardTaskId: number): Promise<Task | null> {
+    const result = await this.db
+      .select()
+      .from(tasks)
+      .innerJoin(columns, eq(tasks.columnId, columns.id))
+      .where(and(eq(columns.boardId, boardId), eq(tasks.boardTaskId, boardTaskId)))
+      .limit(1);
+    return result[0]?.tasks ?? null;
+  }
+
+  async getTaskByIdPrefix(prefix: string): Promise<Task | null> {
+    const result = await this.db
+      .select()
+      .from(tasks)
+      .where(sql`${tasks.id} LIKE ${prefix.toUpperCase() + "%"}`)
+      .limit(2);
+
+    if (result.length === 0) return null;
+    if (result.length > 1) {
+      throw new KabanError(
+        `Ambiguous task ID prefix: ${prefix}. Multiple matches found.`,
+        ExitCode.VALIDATION,
+      );
+    }
+    return result[0];
   }
 }
