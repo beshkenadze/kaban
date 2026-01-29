@@ -151,11 +151,11 @@ export class TaskService {
         ${JSON.stringify(input.labels ?? [])},
         ${null},
         ${1},
-        ${now.getTime()},
-        ${now.getTime()},
+        ${Math.floor(now.getTime() / 1000)},
+        ${Math.floor(now.getTime() / 1000)},
         ${null},
         ${null},
-        ${dueDate?.getTime() ?? null},
+        ${dueDate ? Math.floor(dueDate.getTime() / 1000) : null},
         ${0},
         ${null}
       )
