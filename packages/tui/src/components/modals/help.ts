@@ -12,6 +12,7 @@ const SHORTCUTS = [
   ["u", "Assign user to task"],
   ["d", "Delete task"],
   ["C", "Complete task (move to done)"],
+  ["H", "View task history"],
   ["x", "Archive task"],
   ["r", "Restore task (archive view)"],
   ["/", "Search archive (archive view)"],

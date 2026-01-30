@@ -1,4 +1,4 @@
-import type { BoardService, Task, TaskService } from "@kaban-board/core/bun";
+import type { BoardService, DB, Task, TaskService } from "@kaban-board/core/bun";
 import type {
   BoxRenderable,
   CliRenderer,
@@ -21,7 +21,8 @@ export type ModalType =
   | "help"
   | "quit"
   | "searchArchive"
-  | "purgeArchive";
+  | "purgeArchive"
+  | "taskHistory";
 
 export interface ViewTaskState {
   descriptionScrollOffset: number;
@@ -62,6 +63,7 @@ export interface EditTaskRuntime {
 
 export interface AppState {
   renderer: CliRenderer;
+  db: DB;
   taskService: TaskService;
   boardService: BoardService;
   boardName: string;

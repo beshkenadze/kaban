@@ -52,6 +52,7 @@ async function main() {
 
   const state: AppState = {
     renderer,
+    db,
     taskService,
     boardService,
     boardName: board.name,

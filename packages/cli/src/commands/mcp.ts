@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+  AuditService,
   BoardService,
   type Config,
   createDb,
@@ -457,6 +458,40 @@ async function startMcpServer(workingDirectory: string) {
           required: ["markdown"],
         },
       },
+      {
+        name: "kaban_get_audit_history",
+        description: "Get audit log history with optional filters",
+        inputSchema: {
+          type: "object",
+          properties: {
+            objectType: {
+              type: "string",
+              enum: ["task", "column", "board"],
+              description: "Filter by object type",
+            },
+            objectId: { type: "string", description: "Filter by object ID" },
+            eventType: {
+              type: "string",
+              enum: ["CREATE", "UPDATE", "DELETE"],
+              description: "Filter by event type",
+            },
+            actor: { type: "string", description: "Filter by actor name" },
+            limit: { type: "number", description: "Max entries (default: 50, max: 1000)" },
+          },
+        },
+      },
+      {
+        name: "kaban_get_task_history",
+        description: "Get change history for a specific task",
+        inputSchema: {
+          type: "object",
+          properties: {
+            taskId: { type: "string", description: "Task ID (ULID or partial)" },
+            id: { type: "string", description: "Task ID - alias for taskId" },
+            limit: { type: "number", description: "Max entries (default: 50)" },
+          },
+        },
+      },
     ],
   }));
 
@@ -858,6 +893,39 @@ async function startMcpServer(workingDirectory: string) {
             }
           }
           return jsonResponse({ success: true, tasksCreated: createdTasks.length, tasks: createdTasks });
+        }
+        case "kaban_get_audit_history": {
+          const { objectType, objectId, eventType, actor, limit } = (args ?? {}) as {
+            objectType?: "task" | "column" | "board";
+            objectId?: string;
+            eventType?: "CREATE" | "UPDATE" | "DELETE";
+            actor?: string;
+            limit?: number;
+          };
+          const auditService = new AuditService(db);
+          const result = await auditService.getHistory({
+            objectType,
+            objectId,
+            eventType,
+            actor,
+            limit: limit ?? 50,
+          });
+          return jsonResponse(result);
+        }
+        case "kaban_get_task_history": {
+          const taskIdArg = getParam(args as Record<string, unknown>, "taskId", "id");
+          if (!taskIdArg) return errorResponse("Task ID required (use 'taskId' or 'id')");
+
+          const task = await taskService.resolveTask(taskIdArg);
+          if (!task) return errorResponse(`Task '${taskIdArg}' not found`);
+
+          const { limit } = (args ?? {}) as { limit?: number };
+          const auditService = new AuditService(db);
+          const entries = await auditService.getTaskHistory(task.id, limit ?? 50);
+          return jsonResponse({
+            task: { id: task.id, title: task.title },
+            entries,
+          });
         }
         default:
           return errorResponse(`Unknown tool: ${name}`);

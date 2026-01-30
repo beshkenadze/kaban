@@ -162,6 +162,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_column ON tasks(column_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_parent ON tasks(parent_id);
 CREATE INDEX IF NOT EXISTS idx_audits_object ON audits(object_type, object_id);
 CREATE INDEX IF NOT EXISTS idx_audits_timestamp ON audits(timestamp);
+CREATE INDEX IF NOT EXISTS idx_audits_actor ON audits(actor);
 CREATE INDEX IF NOT EXISTS idx_task_links_from ON task_links(from_task_id);
 CREATE INDEX IF NOT EXISTS idx_task_links_to ON task_links(to_task_id);
 CREATE INDEX IF NOT EXISTS idx_task_links_type ON task_links(link_type);

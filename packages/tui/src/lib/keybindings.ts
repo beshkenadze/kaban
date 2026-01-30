@@ -16,6 +16,7 @@ import {
   showQuitModal,
   showRestoreTaskModal,
   showSearchArchiveModal,
+  showTaskHistoryModal,
   showViewTaskModal,
 } from "../components/modals/index.js";
 import type { AppState, ModalType } from "./types.js";
@@ -242,6 +243,12 @@ const modalBindings: Record<ModalType, KeyBindings> = {
     tab: toggleArchiveView,
     return: openViewModal,
     "?": showHelpModal,
+    H: (state) => {
+      const taskId = getSelectedTaskId(state);
+      if (taskId) {
+        return showTaskHistoryModal(state);
+      }
+    },
   },
   addTask: {
     escape: closeModal,
@@ -338,6 +345,10 @@ const modalBindings: Record<ModalType, KeyBindings> = {
     y: confirmModal,
     n: closeModal,
     escape: closeModal,
+  },
+  taskHistory: {
+    escape: closeModal,
+    [WILDCARD]: closeModal,
   },
 };
 

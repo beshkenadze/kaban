@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import { Command } from "commander";
 import { addCommand } from "./commands/add.js";
 import { archiveCommand, purgeCommand, resetCommand, restoreCommand } from "./commands/archive.js";
+import { auditCommand } from "./commands/audit.js";
 import { assignCommand } from "./commands/assign.js";
 import { deleteCommand } from "./commands/delete.js";
 import { doneCommand } from "./commands/done.js";
@@ -32,6 +33,7 @@ program.name("kaban").description("Terminal Kanban for AI Code Agents").version(
 
 program.addCommand(initCommand);
 program.addCommand(addCommand);
+program.addCommand(auditCommand);
 program.addCommand(listCommand);
 program.addCommand(moveCommand);
 program.addCommand(assignCommand);

@@ -533,3 +533,140 @@ describe("stats command", () => {
     expect(result.data.activeTasks).toBe(0);
   });
 });
+
+describe("audit command", () => {
+  beforeEach(() => {
+    if (existsSync(TEST_DIR)) rmSync(TEST_DIR, { recursive: true });
+    mkdirSync(TEST_DIR, { recursive: true });
+    run("init --name 'Test Board'");
+  });
+
+  afterEach(() => {
+    if (existsSync(TEST_DIR)) rmSync(TEST_DIR, { recursive: true });
+  });
+
+  test("audit list shows entries after task creation", () => {
+    runCli(["add", "Test task"]);
+    
+    const { stdout, exitCode } = runCli(["audit", "list"]);
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("Audit Log");
+    expect(stdout).toContain("CREATE");
+    expect(stdout).toContain("task");
+  });
+
+  test("audit list --json returns valid JSON", () => {
+    runCli(["add", "Test task"]);
+    
+    const { stdout, exitCode } = runCli(["audit", "list", "--json"]);
+    expect(exitCode).toBe(0);
+    const result = JSON.parse(stdout);
+    expect(result.success).toBe(true);
+    expect(result.data.entries).toBeDefined();
+    expect(result.data.total).toBeGreaterThan(0);
+  });
+
+  test("audit task shows task history", () => {
+    const { stdout } = runCli(["add", "Test task"]);
+    const id = stdout.match(/\[([^\]]+)\]/)?.[1];
+    runCli(["move", id!, "in_progress"]);
+    
+    const { stdout: historyOut, exitCode } = runCli(["audit", "task", id!]);
+    expect(exitCode).toBe(0);
+    expect(historyOut).toContain("History for");
+    expect(historyOut).toContain("CREATED");
+    expect(historyOut).toContain("columnId");
+  });
+
+  test("audit task --json returns valid JSON", () => {
+    const { stdout } = runCli(["add", "Test task"]);
+    const id = stdout.match(/\[([^\]]+)\]/)?.[1];
+    
+    const { stdout: jsonOut, exitCode } = runCli(["audit", "task", id!, "--json"]);
+    expect(exitCode).toBe(0);
+    const result = JSON.parse(jsonOut);
+    expect(result.success).toBe(true);
+    expect(result.data.task.id).toBeDefined();
+    expect(result.data.entries).toBeDefined();
+  });
+
+  test("audit task fails for non-existent task", () => {
+    const { stderr, exitCode } = runCli(["audit", "task", "nonexistent"]);
+    expect(exitCode).not.toBe(0);
+    expect(stderr).toContain("not found");
+  });
+
+  test("audit stats shows statistics", () => {
+    runCli(["add", "Task 1"]);
+    runCli(["add", "Task 2"]);
+    
+    const { stdout, exitCode } = runCli(["audit", "stats"]);
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("Audit Statistics");
+    expect(stdout).toContain("Total entries:");
+    expect(stdout).toContain("By Event Type:");
+    expect(stdout).toContain("By Object Type:");
+  });
+
+  test("audit stats --json returns valid JSON", () => {
+    runCli(["add", "Test task"]);
+    
+    const { stdout, exitCode } = runCli(["audit", "stats", "--json"]);
+    expect(exitCode).toBe(0);
+    const result = JSON.parse(stdout);
+    expect(result.success).toBe(true);
+    expect(result.data.totalEntries).toBeGreaterThan(0);
+    expect(result.data.byEventType).toBeDefined();
+    expect(result.data.byObjectType).toBeDefined();
+  });
+
+  test("audit actor shows changes by actor", () => {
+    runCli(["add", "Task by alice", "--agent", "alice"]);
+    runCli(["add", "Task by bob", "--agent", "bob"]);
+    
+    const { stdout, exitCode } = runCli(["audit", "actor", "alice"]);
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("Changes by @alice");
+    expect(stdout).toContain("Task by alice");
+  });
+
+  test("audit list with --actor filter", () => {
+    runCli(["add", "Task by alice", "--agent", "alice"]);
+    runCli(["add", "Task by bob", "--agent", "bob"]);
+    
+    const { stdout, exitCode } = runCli(["audit", "list", "--actor", "alice", "--json"]);
+    expect(exitCode).toBe(0);
+    const result = JSON.parse(stdout);
+    expect(result.data.entries.every((e: { actor: string }) => e.actor === "alice")).toBe(true);
+  });
+
+  test("audit list with --type filter", () => {
+    runCli(["add", "Test task"]);
+    
+    const { stdout, exitCode } = runCli(["audit", "list", "--type", "task", "--json"]);
+    expect(exitCode).toBe(0);
+    const result = JSON.parse(stdout);
+    expect(result.data.entries.every((e: { objectType: string }) => e.objectType === "task")).toBe(true);
+  });
+
+  test("audit list with --event filter", () => {
+    runCli(["add", "Test task"]);
+    
+    const { stdout, exitCode } = runCli(["audit", "list", "--event", "CREATE", "--json"]);
+    expect(exitCode).toBe(0);
+    const result = JSON.parse(stdout);
+    expect(result.data.entries.every((e: { eventType: string }) => e.eventType === "CREATE")).toBe(true);
+  });
+
+  test("audit list with --limit option", () => {
+    for (let i = 0; i < 5; i++) {
+      runCli(["add", `Task ${i}`]);
+    }
+    
+    const { stdout, exitCode } = runCli(["audit", "list", "--limit", "2", "--json"]);
+    expect(exitCode).toBe(0);
+    const result = JSON.parse(stdout);
+    expect(result.data.entries.length).toBe(2);
+    expect(result.data.hasMore).toBe(true);
+  });
+});
