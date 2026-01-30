@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2](https://github.com/kaban-board/kaban/compare/v0.3.1...v0.3.2) (2026-01-30)
+
+
+### Features
+
+* **cli:** add export and import commands for markdown ([c2e0aa8](https://github.com/kaban-board/kaban/commit/c2e0aa8cfe974593e474f20a2a86ee6588a9304e))
+* **cli:** add get, edit, delete, next, stats commands ([dbb9deb](https://github.com/kaban-board/kaban/commit/dbb9deb3a7ebaf8762caaed633ba9b2c490d90df))
+* **cli:** add MCP tools for links, scoring, and markdown export/import ([9947816](https://github.com/kaban-board/kaban/commit/9947816727c2d48293e07c57548e9c9c8be2580b))
+* **core:** add audit log migration with triggers (SPEC-001) ([98e0b09](https://github.com/kaban-board/kaban/commit/98e0b09f75179bd997ae2a1314962803bfd1c54f))
+* **core:** add board-scoped IDs migration (SPEC-002) ([a72443e](https://github.com/kaban-board/kaban/commit/a72443eaf65cf891bfd6b6d25ab42c0e7d110b43))
+* **core:** add cycle detection for task dependencies (SPEC-004) ([ad6bd23](https://github.com/kaban-board/kaban/commit/ad6bd2356230975c99be8275f346824a20c4c1f3))
+* **core:** add due_date field with natural language parsing (SPEC-003) ([1bb8fbe](https://github.com/kaban-board/kaban/commit/1bb8fbe4da0b597df12ff00003d4b94ae34b3897))
+* **core:** add markdown export/import (SPEC-006) ([f26666a](https://github.com/kaban-board/kaban/commit/f26666a3fb2b0d74600953f1a181d4abe1b0abf9))
+* **core:** add pluggable task scoring system (SPEC-007) ([a1abd46](https://github.com/kaban-board/kaban/commit/a1abd468c3f0cede0cb83baed681f8253f1ec616))
+* **core:** add task links/relationships (SPEC-005) ([ac0990d](https://github.com/kaban-board/kaban/commit/ac0990d2891ae444e7346b9bcff24dbe768529fa))
+* **core:** integrate all new features into schema and services ([19cc221](https://github.com/kaban-board/kaban/commit/19cc221cafb649d2032e4cb6b40ce5304d628b07))
+* implement SPEC-009 audit log viewing ([7f73650](https://github.com/kaban-board/kaban/commit/7f73650489e038b5fc1134f2316689f35b91b613))
+* **mcp:** add kaban_assign_task tool ([79ce74f](https://github.com/kaban-board/kaban/commit/79ce74fc7bcd8b5a730197f0d0e66b58d6e6e6b9))
+* **tui:** add complete [C], search [/], purge [P] keybindings and modals ([cb5acf5](https://github.com/kaban-board/kaban/commit/cb5acf5e520ad1d5325fed430f7bff6e6f4ffb89))
+
+
+### Bug Fixes
+
+* **core:** correct timestamp storage to use seconds instead of milliseconds ([9386db8](https://github.com/kaban-board/kaban/commit/9386db8e0e8dfa9dc26557f17ce6f9a7233fba3d))
+* **core:** FTS5 cross-driver compatibility for bun:sqlite and libsql ([5a3e61a](https://github.com/kaban-board/kaban/commit/5a3e61a57eb421f62d36a20378178f3ddde3b615))
+* **tui:** improve type safety in db-client and move-task ([857a34c](https://github.com/kaban-board/kaban/commit/857a34c346026d21eaa5055d00c757ff0d62e6be))
+
 ## [0.3.1](https://github.com/kaban-board/kaban/compare/v0.3.0...v0.3.1) (2026-01-27)
 
 
