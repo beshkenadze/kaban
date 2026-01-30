@@ -3,7 +3,7 @@ import { BoardService, createDb, TaskService } from "@kaban-board/core/bun";
 import { createCliRenderer } from "@opentui/core";
 import { refreshBoard } from "./components/board.js";
 import { showOnboarding } from "./components/modals/index.js";
-import { getDataVersion, getDbClient, getKeyInput, isBunSqlite } from "./lib/db-client.js";
+import { getDataVersion, getDbClient, getKeyInput } from "./lib/db-client.js";
 import { handleKeypress } from "./lib/keybindings.js";
 import { findKabanRoot, getKabanPaths, initializeProject } from "./lib/project.js";
 import type { AppState } from "./lib/types.js";
@@ -72,15 +72,12 @@ async function main() {
   // Poll for database changes (CLI modifications)
   let lastDataVersion: number | null = null;
   const client = getDbClient(db);
-  const useBunSqlite = isBunSqlite(client);
 
   const checkForChanges = async () => {
     if (state.activeModal !== "none") return;
 
     try {
-      const currentVersion = useBunSqlite
-        ? await getDataVersion(client)
-        : await getDataVersion(client);
+      const currentVersion = await getDataVersion(client);
 
       if (lastDataVersion !== null && currentVersion !== lastDataVersion) {
         await refreshBoard(state);

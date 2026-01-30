@@ -16,7 +16,14 @@ export function getDbClient(db: DB): DbClient {
   if (!internal.$client) {
     throw new Error("Unable to access database client");
   }
-  return internal.$client as DbClient;
+  const client = internal.$client;
+  if (
+    typeof (client as BunSqliteClient).query === "function" ||
+    typeof (client as LibsqlClient).execute === "function"
+  ) {
+    return client as DbClient;
+  }
+  throw new Error("Unknown database client type");
 }
 
 export function isBunSqlite(client: DbClient): client is BunSqliteClient {

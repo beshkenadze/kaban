@@ -126,10 +126,11 @@ export async function showMoveTaskModal(
 
   columnSelect.on(SelectRenderableEvents.ITEM_SELECTED, async () => {
     const selected = columnSelect.getSelectedOption();
-    if (selected?.value) {
+    if (selected?.value && typeof selected.value === "string") {
+      const columnId = selected.value;
       const result = await withErrorHandling(
         state,
-        () => state.taskService.moveTask(taskId, selected.value as string),
+        () => state.taskService.moveTask(taskId, columnId),
         "Failed to move task",
       );
       closeModal(state);
