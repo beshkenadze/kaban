@@ -97,35 +97,47 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: v${{ inputs.version }}
+       - name: Checkout
+         uses: actions/checkout@v4
+         with:
+           ref: v${{ inputs.version }}
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+       - name: Setup Bun
+         uses: oven-sh/setup-bun@v2
 
-      - name: Install dependencies
-        run: bun install
+       - name: Install dependencies
+         run: bun install
 
-      - name: Build binaries
-        run: |
-          mkdir -p dist-bin-release
-          bun build --compile --minify packages/cli/src/index.ts --outfile dist-bin-release/kaban
-          bun build --compile --minify packages/cli/src/hook-entry.ts --outfile dist-bin-release/kaban-hook
-          bun build --compile --minify packages/tui/src/index.ts --outfile dist-bin-release/kaban-tui \
-            --external @libsql/client --define "process.env.KABAN_NO_LIBSQL='true'"
+       - name: Build binaries
+         run: |
+           mkdir -p dist-bin-release
+           bun build --compile --minify packages/cli/src/index.ts --outfile dist-bin-release/kaban
+           bun build --compile --minify packages/cli/src/hook-entry.ts --outfile dist-bin-release/kaban-hook
+           bun build --compile --minify packages/tui/src/index.ts --outfile dist-bin-release/kaban-tui \
+             --external @libsql/client --define "process.env.KABAN_NO_LIBSQL='true'"
 
-      - name: Package binaries
-        run: |
-          tar -czf kaban-darwin-arm64-${{ inputs.version }}.tar.gz \
-            -C dist-bin-release kaban kaban-hook kaban-tui
+       - name: Smoke test compiled binaries
+         run: |
+           # Проверка kaban
+           ./dist-bin-release/kaban --version || exit 1
+           ./dist-bin-release/kaban --help || exit 1
+           
+           # Проверка hook-entry  
+           ./dist-bin-release/kaban-hook --version || true
+           
+           # Проверка TUI
+           ./dist-bin-release/kaban-tui --help 2>&1 | head -5 || true
 
-      - name: Upload binaries to release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ inputs.version }}
-          files: kaban-darwin-arm64-${{ inputs.version }}.tar.gz
+       - name: Package binaries
+         run: |
+           tar -czf kaban-darwin-arm64-${{ inputs.version }}.tar.gz \
+             -C dist-bin-release kaban kaban-hook kaban-tui
+
+       - name: Upload binaries to release
+         uses: softprops/action-gh-release@v2
+         with:
+           tag_name: v${{ inputs.version }}
+           files: kaban-darwin-arm64-${{ inputs.version }}.tar.gz
 
   homebrew:
     needs: [release, homebrew-assets]

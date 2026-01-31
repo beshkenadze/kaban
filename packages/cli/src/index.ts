@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { createRequire } from "node:module";
 import { Command } from "commander";
+import pkg from "../package.json" with { type: "json" };
 import { addCommand } from "./commands/add.js";
 import { archiveCommand, purgeCommand, resetCommand, restoreCommand } from "./commands/archive.js";
 import { auditCommand } from "./commands/audit.js";
@@ -23,9 +23,6 @@ import { searchCommand } from "./commands/search.js";
 import { statusCommand } from "./commands/status.js";
 import { syncCommand } from "./commands/sync.js";
 import { tuiCommand } from "./commands/tui.js";
-
-const require = createRequire(import.meta.url);
-const pkg = require("../package.json");
 
 const program = new Command();
 
