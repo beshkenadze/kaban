@@ -11,114 +11,38 @@ export class SchemaType implements SchemaDef {
         type: "sqlite"
     } as const;
     models = {
-        Board: {
-            name: "Board",
+        boards: {
+            name: "boards",
             fields: {
                 id: {
                     name: "id",
                     type: "String",
                     id: true,
-                    attributes: [{ name: "@id" }, { name: "@default", args: [{ name: "value", value: ExpressionUtils.call("cuid") }] }],
-                    default: ExpressionUtils.call("cuid")
+                    attributes: [{ name: "@id" }]
                 },
                 name: {
                     name: "name",
                     type: "String"
                 },
-                description: {
-                    name: "description",
-                    type: "String",
-                    optional: true
+                created_at: {
+                    name: "created_at",
+                    type: "Int"
                 },
-                isPublic: {
-                    name: "isPublic",
-                    type: "Boolean",
-                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.literal(false) }] }],
-                    default: false
+                updated_at: {
+                    name: "updated_at",
+                    type: "Int"
                 },
-                columns: {
-                    name: "columns",
-                    type: "Column",
-                    array: true,
-                    relation: { opposite: "board" }
-                },
-                tasks: {
-                    name: "tasks",
-                    type: "Task",
-                    array: true,
-                    relation: { opposite: "board" }
-                },
-                createdAt: {
-                    name: "createdAt",
-                    type: "DateTime",
-                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.call("now") }] }],
-                    default: ExpressionUtils.call("now")
-                },
-                updatedAt: {
-                    name: "updatedAt",
-                    type: "DateTime",
-                    updatedAt: true,
-                    attributes: [{ name: "@updatedAt" }]
-                }
-            },
-            attributes: [
-                { name: "@@allow", args: [{ name: "operation", value: ExpressionUtils.literal("all") }, { name: "condition", value: ExpressionUtils.literal(true) }] }
-            ],
-            idFields: ["id"],
-            uniqueFields: {
-                id: { type: "String" }
-            }
-        },
-        Column: {
-            name: "Column",
-            fields: {
-                id: {
-                    name: "id",
-                    type: "String",
-                    id: true,
-                    attributes: [{ name: "@id" }, { name: "@default", args: [{ name: "value", value: ExpressionUtils.call("cuid") }] }],
-                    default: ExpressionUtils.call("cuid")
-                },
-                boardId: {
-                    name: "boardId",
-                    type: "String",
-                    foreignKeyFor: [
-                        "board"
-                    ]
-                },
-                board: {
-                    name: "board",
-                    type: "Board",
-                    attributes: [{ name: "@relation", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("boardId")]) }, { name: "references", value: ExpressionUtils.array("String", [ExpressionUtils.field("id")]) }, { name: "onDelete", value: ExpressionUtils.literal("Cascade") }] }],
-                    relation: { opposite: "columns", fields: ["boardId"], references: ["id"], onDelete: "Cascade" }
-                },
-                name: {
-                    name: "name",
-                    type: "String"
-                },
-                order: {
-                    name: "order",
+                max_board_task_id: {
+                    name: "max_board_task_id",
                     type: "Int",
                     attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.literal(0) }] }],
                     default: 0
                 },
-                tasks: {
-                    name: "tasks",
-                    type: "Task",
+                columns: {
+                    name: "columns",
+                    type: "columns",
                     array: true,
-                    relation: { opposite: "column" }
-                },
-                createdAt: {
-                    name: "createdAt",
-                    type: "DateTime",
-                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.call("now") }] }],
-                    default: ExpressionUtils.call("now")
-                },
-                updatedAt: {
-                    name: "updatedAt",
-                    type: "DateTime",
-                    updatedAt: true,
-                    attributes: [{ name: "@updatedAt" }]
+                    relation: { opposite: "boards" }
                 }
             },
             attributes: [
@@ -129,41 +53,70 @@ export class SchemaType implements SchemaDef {
                 id: { type: "String" }
             }
         },
-        Task: {
-            name: "Task",
+        columns: {
+            name: "columns",
             fields: {
                 id: {
                     name: "id",
                     type: "String",
                     id: true,
-                    attributes: [{ name: "@id" }, { name: "@default", args: [{ name: "value", value: ExpressionUtils.call("cuid") }] }],
-                    default: ExpressionUtils.call("cuid")
+                    attributes: [{ name: "@id" }]
                 },
-                boardId: {
-                    name: "boardId",
+                board_id: {
+                    name: "board_id",
                     type: "String",
                     foreignKeyFor: [
-                        "board"
+                        "boards"
                     ]
                 },
-                board: {
-                    name: "board",
-                    type: "Board",
-                    attributes: [{ name: "@relation", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("boardId")]) }, { name: "references", value: ExpressionUtils.array("String", [ExpressionUtils.field("id")]) }, { name: "onDelete", value: ExpressionUtils.literal("Cascade") }] }],
-                    relation: { opposite: "tasks", fields: ["boardId"], references: ["id"], onDelete: "Cascade" }
+                name: {
+                    name: "name",
+                    type: "String"
                 },
-                columnId: {
-                    name: "columnId",
+                position: {
+                    name: "position",
+                    type: "Int"
+                },
+                wip_limit: {
+                    name: "wip_limit",
+                    type: "Int",
+                    optional: true
+                },
+                is_terminal: {
+                    name: "is_terminal",
+                    type: "Int",
+                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.literal(0) }] }],
+                    default: 0
+                },
+                boards: {
+                    name: "boards",
+                    type: "boards",
+                    attributes: [{ name: "@relation", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("board_id")]) }, { name: "references", value: ExpressionUtils.array("String", [ExpressionUtils.field("id")]) }, { name: "onDelete", value: ExpressionUtils.literal("NoAction") }, { name: "onUpdate", value: ExpressionUtils.literal("NoAction") }] }],
+                    relation: { opposite: "columns", fields: ["board_id"], references: ["id"], onDelete: "NoAction", onUpdate: "NoAction" }
+                },
+                tasks: {
+                    name: "tasks",
+                    type: "tasks",
+                    array: true,
+                    relation: { opposite: "columns" }
+                }
+            },
+            attributes: [
+                { name: "@@allow", args: [{ name: "operation", value: ExpressionUtils.literal("all") }, { name: "condition", value: ExpressionUtils.literal(true) }] }
+            ],
+            idFields: ["id"],
+            uniqueFields: {
+                id: { type: "String" }
+            }
+        },
+        tasks: {
+            name: "tasks",
+            fields: {
+                id: {
+                    name: "id",
                     type: "String",
-                    foreignKeyFor: [
-                        "column"
-                    ]
-                },
-                column: {
-                    name: "column",
-                    type: "Column",
-                    attributes: [{ name: "@relation", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("columnId")]) }, { name: "references", value: ExpressionUtils.array("String", [ExpressionUtils.field("id")]) }, { name: "onDelete", value: ExpressionUtils.literal("Cascade") }] }],
-                    relation: { opposite: "tasks", fields: ["columnId"], references: ["id"], onDelete: "Cascade" }
+                    id: true,
+                    attributes: [{ name: "@id" }]
                 },
                 title: {
                     name: "title",
@@ -174,42 +127,270 @@ export class SchemaType implements SchemaDef {
                     type: "String",
                     optional: true
                 },
-                priority: {
-                    name: "priority",
-                    type: "Int",
-                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.literal(0) }] }],
-                    default: 0
+                column_id: {
+                    name: "column_id",
+                    type: "String",
+                    foreignKeyFor: [
+                        "columns"
+                    ]
+                },
+                position: {
+                    name: "position",
+                    type: "Int"
+                },
+                created_by: {
+                    name: "created_by",
+                    type: "String"
+                },
+                assigned_to: {
+                    name: "assigned_to",
+                    type: "String",
+                    optional: true
+                },
+                parent_id: {
+                    name: "parent_id",
+                    type: "String",
+                    optional: true,
+                    foreignKeyFor: [
+                        "parent"
+                    ]
+                },
+                depends_on: {
+                    name: "depends_on",
+                    type: "String",
+                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.literal("[]") }] }],
+                    default: "[]"
+                },
+                files: {
+                    name: "files",
+                    type: "String",
+                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.literal("[]") }] }],
+                    default: "[]"
                 },
                 labels: {
                     name: "labels",
                     type: "String",
+                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.literal("[]") }] }],
+                    default: "[]"
+                },
+                blocked_reason: {
+                    name: "blocked_reason",
+                    type: "String",
                     optional: true
                 },
-                isArchived: {
-                    name: "isArchived",
-                    type: "Boolean",
-                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.literal(false) }] }],
-                    default: false
+                version: {
+                    name: "version",
+                    type: "Int",
+                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.literal(1) }] }],
+                    default: 1
                 },
-                createdAt: {
-                    name: "createdAt",
-                    type: "DateTime",
-                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.call("now") }] }],
-                    default: ExpressionUtils.call("now")
+                created_at: {
+                    name: "created_at",
+                    type: "Int"
                 },
-                updatedAt: {
-                    name: "updatedAt",
-                    type: "DateTime",
-                    updatedAt: true,
-                    attributes: [{ name: "@updatedAt" }]
+                updated_at: {
+                    name: "updated_at",
+                    type: "Int"
+                },
+                started_at: {
+                    name: "started_at",
+                    type: "Int",
+                    optional: true
+                },
+                completed_at: {
+                    name: "completed_at",
+                    type: "Int",
+                    optional: true
+                },
+                archived: {
+                    name: "archived",
+                    type: "Int",
+                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.literal(0) }] }],
+                    default: 0
+                },
+                archived_at: {
+                    name: "archived_at",
+                    type: "Int",
+                    optional: true
+                },
+                board_task_id: {
+                    name: "board_task_id",
+                    type: "Int",
+                    optional: true
+                },
+                updated_by: {
+                    name: "updated_by",
+                    type: "String",
+                    optional: true
+                },
+                due_date: {
+                    name: "due_date",
+                    type: "Int",
+                    optional: true
+                },
+                task_links_task_links_to_task_idTotasks: {
+                    name: "task_links_task_links_to_task_idTotasks",
+                    type: "task_links",
+                    array: true,
+                    attributes: [{ name: "@relation", args: [{ name: "name", value: ExpressionUtils.literal("task_links_to_task_idTotasks") }] }],
+                    relation: { opposite: "to_task", name: "task_links_to_task_idTotasks" }
+                },
+                task_links_task_links_from_task_idTotasks: {
+                    name: "task_links_task_links_from_task_idTotasks",
+                    type: "task_links",
+                    array: true,
+                    attributes: [{ name: "@relation", args: [{ name: "name", value: ExpressionUtils.literal("task_links_from_task_idTotasks") }] }],
+                    relation: { opposite: "from_task", name: "task_links_from_task_idTotasks" }
+                },
+                parent: {
+                    name: "parent",
+                    type: "tasks",
+                    optional: true,
+                    attributes: [{ name: "@relation", args: [{ name: "name", value: ExpressionUtils.literal("tasksTotasks") }, { name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("parent_id")]) }, { name: "references", value: ExpressionUtils.array("String", [ExpressionUtils.field("id")]) }, { name: "onDelete", value: ExpressionUtils.literal("NoAction") }, { name: "onUpdate", value: ExpressionUtils.literal("NoAction") }] }],
+                    relation: { opposite: "subtasks", name: "tasksTotasks", fields: ["parent_id"], references: ["id"], onDelete: "NoAction", onUpdate: "NoAction" }
+                },
+                subtasks: {
+                    name: "subtasks",
+                    type: "tasks",
+                    array: true,
+                    attributes: [{ name: "@relation", args: [{ name: "name", value: ExpressionUtils.literal("tasksTotasks") }] }],
+                    relation: { opposite: "parent", name: "tasksTotasks" }
+                },
+                columns: {
+                    name: "columns",
+                    type: "columns",
+                    attributes: [{ name: "@relation", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("column_id")]) }, { name: "references", value: ExpressionUtils.array("String", [ExpressionUtils.field("id")]) }, { name: "onDelete", value: ExpressionUtils.literal("NoAction") }, { name: "onUpdate", value: ExpressionUtils.literal("NoAction") }] }],
+                    relation: { opposite: "tasks", fields: ["column_id"], references: ["id"], onDelete: "NoAction", onUpdate: "NoAction" }
                 }
             },
             attributes: [
-                { name: "@@allow", args: [{ name: "operation", value: ExpressionUtils.literal("all") }, { name: "condition", value: ExpressionUtils.literal(true) }] }
+                { name: "@@allow", args: [{ name: "operation", value: ExpressionUtils.literal("all") }, { name: "condition", value: ExpressionUtils.literal(true) }] },
+                { name: "@@index", args: [{ name: "fields", value: ExpressionUtils.array("Int", [ExpressionUtils.field("archived")]) }, { name: "map", value: ExpressionUtils.literal("idx_tasks_archived") }] },
+                { name: "@@index", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("parent_id")]) }, { name: "map", value: ExpressionUtils.literal("idx_tasks_parent") }] },
+                { name: "@@index", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("column_id")]) }, { name: "map", value: ExpressionUtils.literal("idx_tasks_column") }] }
             ],
             idFields: ["id"],
             uniqueFields: {
                 id: { type: "String" }
+            }
+        },
+        task_links: {
+            name: "task_links",
+            fields: {
+                id: {
+                    name: "id",
+                    type: "Int",
+                    id: true,
+                    attributes: [{ name: "@id" }, { name: "@default", args: [{ name: "value", value: ExpressionUtils.call("autoincrement") }] }],
+                    default: ExpressionUtils.call("autoincrement")
+                },
+                from_task_id: {
+                    name: "from_task_id",
+                    type: "String",
+                    foreignKeyFor: [
+                        "from_task"
+                    ]
+                },
+                to_task_id: {
+                    name: "to_task_id",
+                    type: "String",
+                    foreignKeyFor: [
+                        "to_task"
+                    ]
+                },
+                link_type: {
+                    name: "link_type",
+                    type: "String"
+                },
+                created_at: {
+                    name: "created_at",
+                    type: "Int",
+                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.call("dbgenerated", [ExpressionUtils.literal("unixepoch()")]) }] }],
+                    default: ExpressionUtils.call("dbgenerated", [ExpressionUtils.literal("unixepoch()")])
+                },
+                from_task: {
+                    name: "from_task",
+                    type: "tasks",
+                    attributes: [{ name: "@relation", args: [{ name: "name", value: ExpressionUtils.literal("task_links_from_task_idTotasks") }, { name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("from_task_id")]) }, { name: "references", value: ExpressionUtils.array("String", [ExpressionUtils.field("id")]) }, { name: "onDelete", value: ExpressionUtils.literal("Cascade") }, { name: "onUpdate", value: ExpressionUtils.literal("NoAction") }] }],
+                    relation: { opposite: "task_links_task_links_from_task_idTotasks", name: "task_links_from_task_idTotasks", fields: ["from_task_id"], references: ["id"], onDelete: "Cascade", onUpdate: "NoAction" }
+                },
+                to_task: {
+                    name: "to_task",
+                    type: "tasks",
+                    attributes: [{ name: "@relation", args: [{ name: "name", value: ExpressionUtils.literal("task_links_to_task_idTotasks") }, { name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("to_task_id")]) }, { name: "references", value: ExpressionUtils.array("String", [ExpressionUtils.field("id")]) }, { name: "onDelete", value: ExpressionUtils.literal("Cascade") }, { name: "onUpdate", value: ExpressionUtils.literal("NoAction") }] }],
+                    relation: { opposite: "task_links_task_links_to_task_idTotasks", name: "task_links_to_task_idTotasks", fields: ["to_task_id"], references: ["id"], onDelete: "Cascade", onUpdate: "NoAction" }
+                }
+            },
+            attributes: [
+                { name: "@@allow", args: [{ name: "operation", value: ExpressionUtils.literal("all") }, { name: "condition", value: ExpressionUtils.literal(true) }] },
+                { name: "@@unique", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("from_task_id"), ExpressionUtils.field("to_task_id"), ExpressionUtils.field("link_type")]) }] },
+                { name: "@@index", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("link_type")]) }, { name: "map", value: ExpressionUtils.literal("idx_task_links_type") }] },
+                { name: "@@index", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("to_task_id")]) }, { name: "map", value: ExpressionUtils.literal("idx_task_links_to") }] },
+                { name: "@@index", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("from_task_id")]) }, { name: "map", value: ExpressionUtils.literal("idx_task_links_from") }] }
+            ],
+            idFields: ["id"],
+            uniqueFields: {
+                id: { type: "Int" },
+                from_task_id_to_task_id_link_type: { from_task_id: { type: "String" }, to_task_id: { type: "String" }, link_type: { type: "String" } }
+            }
+        },
+        audits: {
+            name: "audits",
+            fields: {
+                id: {
+                    name: "id",
+                    type: "Int",
+                    id: true,
+                    attributes: [{ name: "@id" }, { name: "@default", args: [{ name: "value", value: ExpressionUtils.call("autoincrement") }] }],
+                    default: ExpressionUtils.call("autoincrement")
+                },
+                timestamp: {
+                    name: "timestamp",
+                    type: "Int",
+                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.call("dbgenerated", [ExpressionUtils.literal("unixepoch()")]) }] }],
+                    default: ExpressionUtils.call("dbgenerated", [ExpressionUtils.literal("unixepoch()")])
+                },
+                event_type: {
+                    name: "event_type",
+                    type: "String"
+                },
+                object_type: {
+                    name: "object_type",
+                    type: "String"
+                },
+                object_id: {
+                    name: "object_id",
+                    type: "String"
+                },
+                field_name: {
+                    name: "field_name",
+                    type: "String",
+                    optional: true
+                },
+                old_value: {
+                    name: "old_value",
+                    type: "String",
+                    optional: true
+                },
+                new_value: {
+                    name: "new_value",
+                    type: "String",
+                    optional: true
+                },
+                actor: {
+                    name: "actor",
+                    type: "String",
+                    optional: true
+                }
+            },
+            attributes: [
+                { name: "@@allow", args: [{ name: "operation", value: ExpressionUtils.literal("all") }, { name: "condition", value: ExpressionUtils.literal(true) }] },
+                { name: "@@index", args: [{ name: "fields", value: ExpressionUtils.array("Int", [ExpressionUtils.field("timestamp")]) }, { name: "map", value: ExpressionUtils.literal("idx_audits_timestamp") }] },
+                { name: "@@index", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("object_type"), ExpressionUtils.field("object_id")]) }, { name: "map", value: ExpressionUtils.literal("idx_audits_object") }] }
+            ],
+            idFields: ["id"],
+            uniqueFields: {
+                id: { type: "Int" }
             }
         }
     } as const;

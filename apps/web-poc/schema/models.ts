@@ -7,6 +7,8 @@
 
 import { type SchemaType as $Schema } from "./schema";
 import { type ModelResult as $ModelResult } from "@zenstackhq/orm";
-export type Board = $ModelResult<$Schema, "Board">;
-export type Column = $ModelResult<$Schema, "Column">;
-export type Task = $ModelResult<$Schema, "Task">;
+export type boards = $ModelResult<$Schema, "boards">;
+export type columns = $ModelResult<$Schema, "columns">;
+export type tasks = $ModelResult<$Schema, "tasks">;
+export type task_links = $ModelResult<$Schema, "task_links">;
+export type audits = $ModelResult<$Schema, "audits">;
