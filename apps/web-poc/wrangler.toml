@@ -1,17 +1,12 @@
-{
-  "name": "kaban-web-poc",
-  "compatibility_date": "2025-01-01",
-  "compatibility_flags": ["nodejs_compat"],
-  "main": "./.worker-next/index.mjs",
-  "assets": {
-    "directory": "./.worker-next/assets",
-    "binding": "ASSETS"
-  },
-  "vars": {
-    "NEXT_PUBLIC_APP_URL": "https://kaban-web-poc.your-subdomain.workers.dev"
-  },
-  "secrets": [
-    "TURSO_DATABASE_URL",
-    "TURSO_AUTH_TOKEN"
-  ]
-}
+name = "kaban-web-poc"
+account_id = "261caccb581924cf767c637b3b847539"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+main = "./.open-next/worker.js"
+
+[assets]
+directory = "./.open-next/assets"
+binding = "ASSETS"
+
+[vars]
+NEXT_PUBLIC_APP_URL = "https://kaban-web-poc.personal-261.workers.dev"

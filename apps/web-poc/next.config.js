@@ -5,9 +5,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ["@zenstackhq/orm"],
-  },
+  serverExternalPackages: ["@zenstackhq/orm"],
 };
 
 export default nextConfig;
