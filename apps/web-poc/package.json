@@ -1,0 +1,30 @@
+{
+  "name": "@kaban-board/web-poc",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "zenstack generate",
+    "db:push": "zenstack db push"
+  },
+  "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
+    "@libsql/client": "^0.17.0",
+    "@zenstackhq/orm": "^3.0.0",
+    "next": "16.1.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^25.1.0",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
+    "@zenstackhq/cli": "^3.0.0",
+    "typescript": "^5"
+  }
+}
