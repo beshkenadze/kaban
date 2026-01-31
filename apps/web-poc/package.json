@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cloudflare": "opennextjs-cloudflare",
+    "deploy:cloudflare": "opennextjs-cloudflare && wrangler deploy",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "zenstack generate",
@@ -20,11 +22,13 @@
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.16.1",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^25.1.0",
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
     "@zenstackhq/cli": "^3.0.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.61.1"
   }
 }
